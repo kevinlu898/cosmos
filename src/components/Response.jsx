@@ -1,38 +1,41 @@
-import {Button} from "../components/ui/button";
-import {Input} from "../components/ui/input";
+import { Card } from "../components/ui/card";
+import { Button } from "../components/ui/button";
+import { Textarea } from "../components/ui/textarea";
 
-export function Response(props){
-    return (
-        <div className="flex flex-col flex-1 overflow-hidden border-black border-4 rounded-[50px] p-4">
-            <p className="text-3xl font-bold">{props.type === "text" ? "Type your response!" : "Choose a response!"}</p>
-            <div className="flex flex-col gap-2 overflow-auto my-10">
-                {props.type === "multiple-choice" && (
-                    <div className="flex flex-col gap-2">
-                        {props.options.map((option, index) => (
-                            <Button key={index}>{option}</Button>
-                        ))}
-                    </div>
-                )}
-                {props.type === "multi-select" && (
-                    <div className="flex flex-col gap-2">
-                        {props.options.map((option, index) => (
-                            <Button key={index}>{option}</Button>
-                        ))}
-                    </div>
-                )}
-                {props.type === "text" && (
-                    <div>
-                        <Input className="text-xl" type="text" placeholder="Type here" />
-                        <Button size="md" className="w-full">Submit</Button>
-                    </div>
-                )}
-                {props.type === "true-false" && (
-                    <div className="flex flex-col gap-2">
-                        <Button className="w-full">True</Button>
-                        <Button className="w-full">False</Button>
-                    </div>
-                )}
-            </div>
+const CHOICE_VARIANTS = ["coral", "default", "success", "grape", "sun", "secondary"];
+
+export function Response(props) {
+  return (
+    <Card className="w-100 gap-5 p-6">
+      <p className="text-center text-2xl font-bold text-purple-900">{props.type === "text" ? "Type your answer!" : "Pick your answer!"}</p>
+
+      {(props.type === "multiple-choice" ) && (
+        <div className="grid grid-rows-2 gap-3">
+          {props.options.map((option, index) => (
+            <Button
+              key={index}
+              variant={CHOICE_VARIANTS[index % CHOICE_VARIANTS.length]}
+              size="lg"
+            >
+              {option}
+            </Button>
+          ))}
         </div>
-    );
+      )}
+
+      {props.type === "true-false" && (
+        <div className="grid grid-rows-2 gap-3">
+          <Button variant="success" size="lg">👍 True</Button>
+          <Button variant="danger" size="lg">👎 False</Button>
+        </div>
+      )}
+
+      {props.type === "text" && (
+        <div className="grid grid-rows-2 gap-3">
+          <Textarea type="text" placeholder="Type here..." className="flex-1 h-40" />
+          <Button variant="success" size="lg">Go!</Button>
+        </div>
+      )}
+    </Card>
+  );
 }
