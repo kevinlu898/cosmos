@@ -34,7 +34,10 @@ export default function Game() {
     setIsLoadingQuestion(true);
 
     try {
-      const questionr = await generateQuestion("animals", "teacher");
+      const selectedTopic = localStorage.getItem("selectedTopic") || "animals";
+      const selectedAnimal =
+        localStorage.getItem("selectedAnimal") || "teacher";
+      const questionr = await generateQuestion(selectedTopic, selectedAnimal);
       console.log(questionr);
       setQuestion(questionr);
       setSpeechText(questionr.question);
@@ -69,7 +72,7 @@ export default function Game() {
     }
     const feedback = isCorrect
       ? "Correct! " + question?.explanation
-      : "Wrong. " + question?.explanation;
+      : "Sorry, that's wrong. " + question?.explanation;
     setSpeechText(feedback);
     // Read the feedback aloud (free browser text-to-speech).
     speak(feedback);
@@ -94,7 +97,8 @@ export default function Game() {
   }
 
   async function handleNext() {
-    // clear answered state, load next question
+    // stop any feedback audio that's still playing, then load the next question
+    stopSpeaking();
     setAnswered(null);
     await genQuestion();
   }
@@ -109,7 +113,7 @@ export default function Game() {
   }, []);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
+    <div className="flex h-full flex-col overflow-hidden bg-linear-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
       <TopBar
         left={
           <Button size="xs" onClick={() => navigate("/")}>
