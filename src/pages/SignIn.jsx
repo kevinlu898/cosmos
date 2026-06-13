@@ -1,0 +1,45 @@
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "../lib/database.js";
+import { Button } from "../components/ui/button.jsx";
+import { Input } from "../components/ui/input.jsx";
+
+export default function SignIn() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const navigate = useNavigate();
+
+  async function handleSignIn() {
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) {
+        alert(error.message || error.error_description);
+        return;
+      }
+      // try to fetch profile name
+      try {
+        const { data: profile, error: pErr } = await supabase.from('profiles').select('name').eq('user_id', data.user.id).maybeSingle();
+        if (!pErr && profile?.name) {
+        }
+      } catch (err) {
+        console.warn('profile fetch failed', err);
+      }
+      navigate('/home');
+    } catch (err) {
+      alert(err.message || String(err));
+    }
+  }
+
+  return (
+    <div className="mx-auto max-w-md p-6">
+      <h1 className="text-2xl font-semibold mb-4">Sign in</h1>
+      <div className="mb-2 text-left">Email</div>
+      <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="w-full mb-3" />
+      <div className="mb-2 text-left">Password</div>
+      <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" className="w-full mb-4" />
+
+    <Button className="w-full" onClick={handleSignIn}>Sign in</Button>
+    <Button className="text-sm" variant="ghost" onClick={() => navigate('/')}>Create account</Button>
+    </div>
+  );
+}
