@@ -7,12 +7,14 @@ import { BrowserRouter, Routes, Route } from "react-router-dom"
 export default function App(){
     return (
         <BrowserRouter>
-            <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/area/:areaId" element={<Area />} />
-                <Route path="/game" element={<Game />} />
-                <Route path="/shop" element={<Shop />} />
-            </Routes>
+            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                <Routes>
+                    <Route path="/" element={<Home />} />
+                    <Route path="/game" element={<Game />} />
+                    <Route path="/area/:id" element={<Area />} />
+                    <Route path="/shop" element={<Shop />} />
+                </Routes>
+            </div>
         </BrowserRouter>
     )
 }
