@@ -25,7 +25,10 @@ export default function Game() {
     setIsLoadingQuestion(true);
 
     try {
-      const questionr = await generateQuestion("animals", "teacher");
+      const selectedTopic = localStorage.getItem("selectedTopic") || "animals";
+      const selectedAnimal =
+        localStorage.getItem("selectedAnimal") || "teacher";
+      const questionr = await generateQuestion(selectedTopic, selectedAnimal);
       console.log(questionr);
       setQuestion(questionr);
       setSpeechText(questionr.question);
@@ -89,7 +92,7 @@ export default function Game() {
   }, []);
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
+    <div className="flex h-full flex-col overflow-hidden bg-linear-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
       <TopBar
         left={
           <Button size="xs" onClick={() => navigate("/")}>
@@ -108,8 +111,12 @@ export default function Game() {
         <Background biome="arctic">
           <div className="flex h-full w-full flex-col items-center justify-between gap-3 overflow-hidden p-4 sm:p-6">
             <Speech
-              text={isLoadingQuestion ? "Thinking of a fun question…" : speechText}
-              tone={answered === null ? undefined : answered ? "correct" : "wrong"}
+              text={
+                isLoadingQuestion ? "Thinking of a fun question…" : speechText
+              }
+              tone={
+                answered === null ? undefined : answered ? "correct" : "wrong"
+              }
             />
 
             <Animal name="Lion" />
