@@ -32,14 +32,15 @@ export default function SignIn() {
 
   return (
     <div className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold mb-4">Sign in</h1>
+      <h1 className="text-2xl font-semibold mb-4">Cosmos</h1>
+      <h2 className="text-lg font-medium mb-4">Sign in</h2>
       <div className="mb-2 text-left">Email</div>
       <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="w-full mb-3" />
       <div className="mb-2 text-left">Password</div>
       <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" className="w-full mb-4" />
 
     <Button className="w-full" onClick={handleSignIn}>Sign in</Button>
-    <Button className="text-sm" variant="ghost" onClick={() => navigate('/')}>Create account</Button>
+    <Button className="text-sm mt-5" variant="ghost" onClick={() => navigate('/')}>New here? Create account</Button>
     </div>
   );
 }

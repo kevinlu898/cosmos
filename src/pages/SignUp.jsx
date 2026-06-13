@@ -32,7 +32,8 @@ export default function SignUp() {
 
   return (
     <div className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold mb-4">Sign up</h1>
+      <h1 className="text-2xl font-semibold mb-4">Cosmos</h1>
+      <h2 className="text-lg font-medium mb-4">Sign up</h2>
       <div className="mb-2 text-left">Name</div>
       <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Your name" className="w-full mb-3" />
       <div className="mb-2 text-left">Email</div>
@@ -40,10 +41,9 @@ export default function SignUp() {
       <div className="mb-2 text-left">Password</div>
       <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" className="w-full mb-4" />
 
-      <div className="flex gap-3">
-        <Button onClick={handleSignUp}>Create account</Button>
-        <Button variant="ghost" onClick={() => navigate('/signin')}>Have an account? Sign in</Button>
-      </div>
+        <Button className="w-full" onClick={handleSignUp}>Create account</Button>
+        <Button className="text-sm mt-5" variant="ghost" onClick={() => navigate('/signin')}>Have an account? Sign in</Button>
+
     </div>
   );
 }
