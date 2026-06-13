@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { Card } from "../components/ui/card";
 import { Button } from "../components/ui/button";
 import { Textarea } from "../components/ui/textarea";
@@ -12,6 +13,34 @@ const CHOICE_VARIANTS = [
 ];
 
 export function Response(props) {
+  const [shuffled, setShuffled] = useState([]);
+  const [shuffledCorrect, setShuffledCorrect] = useState(null);
+
+  useEffect(() => {
+    if (props.type !== "multiple-choice") return;
+
+    const doShuffle = async () => {
+      const options = Array.isArray(props.options) ? props.options : [];
+
+      // Pair each option with its original index
+      const paired = options.map((opt, i) => ({ opt, i }));
+
+      // Fisher-Yates shuffle
+      for (let i = paired.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [paired[i], paired[j]] = [paired[j], paired[i]];
+      }
+
+      setShuffled(paired.map((p) => p.opt));
+
+      // find new index where original index === props.correct
+      const newIndex = paired.findIndex((p) => p.i === props.correct);
+      setShuffledCorrect(newIndex >= 0 ? newIndex : null);
+    };
+
+    doShuffle();
+  }, [props.options, props.correct, props.type]);
+
   return (
     <Card className="w-100 gap-5 p-6">
       <p className="text-center text-2xl font-bold text-purple-900">
@@ -20,22 +49,28 @@ export function Response(props) {
 
       {props.type === "multiple-choice" && (
         <div className="grid grid-rows-2 gap-3">
-          {props.options.map((option, index) => (
-            <Button
-              key={index}
-              variant={CHOICE_VARIANTS[index % CHOICE_VARIANTS.length]}
-              size="lg"
-              onClick={() => {
-                if (index === props.correct) {
-                  props.whenCorrect();
-                } else {
-                  props.whenWrong();
-                }
-              }}
-            >
-              {option}
-            </Button>
-          ))}
+          {(shuffled.length ? shuffled : props.options || []).map(
+            (option, index) => (
+              <Button
+                key={index}
+                variant={CHOICE_VARIANTS[index % CHOICE_VARIANTS.length]}
+                size="lg"
+                disabled={props.disabled}
+                onClick={() => {
+                  const correctIndex = shuffled.length
+                    ? shuffledCorrect
+                    : props.correct;
+                  if (index === correctIndex) {
+                    props.whenCorrect();
+                  } else {
+                    props.whenWrong();
+                  }
+                }}
+              >
+                {option}
+              </Button>
+            ),
+          )}
         </div>
       )}
 

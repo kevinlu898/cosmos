@@ -7,12 +7,27 @@ export function cn(...inputs) {
 }
 
 export async function getStardust(user_id) {
-  const therow = await getById("profiles", user_id, "email");
-  return therow.stardust;
+  if (!user_id) {
+    return 0;
+  }
+
+  const therow = await getById("profiles", user_id, { column: "user_id" });
+  return therow?.stardust ?? 0;
 }
 
 export async function addStardust(user_id, num) {
+  if (!user_id) {
+    throw new Error("addStardust requires a user_id");
+  }
+
   const currentStardust = await getStardust(user_id);
   const newStardust = currentStardust + num;
-  await update("profiles", user_id, { stardust: newStardust });
+  await update(
+    "profiles",
+    user_id,
+    { stardust: newStardust },
+    { column: "user_id" },
+  );
+
+  return newStardust;
 }

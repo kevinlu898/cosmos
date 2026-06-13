@@ -12,7 +12,7 @@ export const generateQuestion = async (topic, character) => {
   let max = 20;
   let random = Math.floor(Math.random() * (max - min + 1)) + min;
   const response = await queryAI(
-    `${random}. Generate a question about ${topic} for the user, imagining that you are a ${character}. Make it for young children. Provide three responses, and indicate a correct response by an index 0-2. Return data in the following format, with no changes compared to how I indicated; {"question":"XXX", "responses": ["XXX", "XXX", "XXX"], "correct": X}`,
+    `${random}. Generate a question about ${topic} for the user, imagining that you are a ${character}. Make it for young children. Provide three responses, and indicate a correct response by an index 0-2 randomly, inclusive. Give a short, 20 word max explanation of the correct answer. Return data in the following format, with no changes compared to how I indicated; {"question":"XXX", "responses": ["XXX", "XXX", "XXX"], "correct": X, "explanation": "XXX"}`,
   );
   console.log(response.answer);
   return JSON.parse(response.answer);
