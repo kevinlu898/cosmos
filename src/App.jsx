@@ -1,52 +1,84 @@
-import "./index.css";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { Input } from "./components/ui/input.jsx"
-import { Button } from "./components/ui/button.jsx"
+import { supabase, create, update, list } from "./lib/database.js"
+import { Button } from "./components/ui/button";
+import { Input } from "./components/ui/input";
 
-function getSupabaseClient() {
-  return createClient(
-    import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-  );
-}
-export default function App() {
-  const supabase = useMemo(() => getSupabaseClient(), []);
-  const [loading, setLoading] = useState(false);
+function App() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [claims, setClaims] = useState(null);
-  // Check URL params on initial render
-  const params = new URLSearchParams(window.location.search);
-  const hasTokenHash = params.get("token_hash");
-  const [verifying, setVerifying] = useState(!!hasTokenHash);
-  const [authError, setAuthError] = useState(null);
-  const [authSuccess, setAuthSuccess] = useState(false);
+
+  // Click counter states
+  const [clicks, setClicks] = useState(0);
+  const [countRow, setCountRow] = useState(null);
+
+  // Load user's count once they're logged in.
   useEffect(() => {
-    // Check if we have token_hash in URL (magic link callback)
-    const params = new URLSearchParams(window.location.search);
-    const token_hash = params.get("token_hash");
-    const type = params.get("type");
-    if (token_hash) {
-      // Verify the OTP token
-      supabase.auth
-        .verifyOtp({
-          token_hash,
-          type: type || "email",
-        })
-        .then(({ error }) => {
-          if (error) {
-            setAuthError(error.message);
-          } else {
-            setAuthSuccess(true);
-            // Clear URL params
-            window.history.replaceState({}, document.title, "/");
-          }
-          setVerifying(false);
-        });
+    if (!claims) return;
+    list("counts", { limit: 1 }).then((rows) => {
+      if (rows && rows.length > 0) {
+        setCountRow(rows[0]);
+        setClicks(rows[0].clickTimes ?? 0);
+      } else {
+        setCountRow(null);
+        setClicks(0);
+      }
+    });
+  }, [claims]);
+
+  // Increment the click count and savve to "counts" table in DB
+  async function click() {
+    const newClicks = clicks + 1;
+    setClicks(newClicks);
+    if (countRow) {
+      const updated = await update("counts", countRow.id, { clickTimes: newClicks });
+      setCountRow(updated);
+    } else {
+      const created = await create("counts", { clickTimes: newClicks, user_id: claims.sub });
+      setCountRow(created);
     }
+  }
+
+  async function signUpNewUser(email, password) {
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+      options: {
+        emailRedirectTo: "http://localhost:5173",
+      },
+    });
+    if (error) {
+      alert(error.error_description || error.message);
+    } else {
+      setClaims({ email: data.email });
+    }
+    return { data, error };
+  }
+
+  async function signInWithEmail(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+    if (error) {
+      alert(error.error_description || error.message);
+    } else {
+      console.log({ data, error });
+      setClaims({ email: data.email });
+    }
+    return { data, error };
+  }
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    setClaims(null);
+  };
+
+  useEffect(() => {
     // Check for existing session using getClaims
-    supabase.auth.getClaims().then(({ data: { claims } }) => {
-      setClaims(claims);
+    supabase.auth.getClaims().then(({ data }) => {
+      setClaims(data?.claims);
     });
     // Listen for auth changes
     const {
@@ -57,100 +89,49 @@ export default function App() {
       });
     });
     return () => subscription.unsubscribe();
-  }, [supabase]);
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) {
-      alert(error.error_description || error.message);
-    } else {
-      alert("Check your email for the login link!");
-    }
-    setLoading(false);
-  };
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    setClaims(null);
-  };
-  // Show verification state
-  if (verifying) {
+  }, []);
+  if (!claims) {
     return (
       <div>
-        <h1>Authentication</h1>
-        <p>Confirming your magic link...</p>
-        <p>Loading...</p>
-      </div>
-    );
-  }
-  // Show auth error
-  if (authError) {
-    return (
-      <div>
-        <h1>Authentication</h1>
-        <p>✗ Authentication failed</p>
-        <p>{authError}</p>
-        <button
-          onClick={() => {
-            setAuthError(null);
-            window.history.replaceState({}, document.title, "/");
-          }}
-        >
-          Return to login
-        </button>
-      </div>
-    );
-  }
-  // Show auth success (briefly before claims load)
-  if (authSuccess && !claims) {
-    return (
-      <div>
-        <h1>Authentication</h1>
-        <p>✓ Authentication successful!</p>
-        <p>Loading your account...</p>
-      </div>
-    );
-  }
-  // If user is logged in, show welcome screen
-  if (claims) {
-    return (
-      <div>
-        <h1>Welcome!</h1>
-        <p>You are logged in as: {claims.email}</p>
-        <button onClick={handleLogout}>Sign Out</button>
-      </div>
-    );
-  }
-  // UseState for clicking
-  const [clicks, setClicks] = useState(0);
-
-  // Show login form
-  return (
-    <div>
-      <h1>Supabase + React</h1>
-      <p>Sign in via magic link with your email below</p>
-      <form onSubmit={handleLogin}>
+        <h1> welcome to the app :evil_grin:</h1>
+        <div>you are not logged in.</div> <br></br>
+        <div>Email:</div>
+        <br></br>
         <Input
-          type="email"
-          placeholder="Your email"
+          placeholder="enter your email"
           value={email}
-          required={true}
           onChange={(e) => setEmail(e.target.value)}
+          className="w-50"
         />
-        <Button disabled={loading}>
-          {loading ? <span>Loading</span> : <span>Send magic link</span>}
+        <br></br>
+        <div>Password:</div>
+        <br></br>
+        <Input
+          placeholder="enter your password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-50"
+        />
+        <br></br>
+        <Button onClick={() => signUpNewUser(email, password)}>Sign Up</Button>
+        <Button onClick={() => signInWithEmail(email, password)}>
+          Sign In
         </Button>
-      </form>
-
-      <Button onClick={() => setClicks(clicks + 1)}>
-        Click me
-      </Button>
-      <p>Clicks: {clicks}</p>
-    </div>
-  );
+      </div>
+    );
+  } else {
+    return (
+      <div>
+        <h1>Welcome {claims.email}</h1>
+        <Button onClick={() => click()}>
+          Click me
+        </Button>
+        <p>Clicks: {clicks}</p>
+        <Button onClick={() => handleLogout()}>logout</Button>
+      </div>
+    );
+  }
 }
+
+export default App;
