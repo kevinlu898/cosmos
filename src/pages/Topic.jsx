@@ -1,5 +1,7 @@
 import { useMemo } from "react";
 import { useNavigate, useParams } from "react-router-dom";
+import { TopBar } from "../components/Navbar";
+import { Button } from "../components/ui/button";
 
 const AREA_NAMES = {
   "area-1": "Forest",
@@ -35,7 +37,13 @@ export default function Topic() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 text-center">
+    <div className="flex h-full flex-col overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
+      <TopBar
+        left={<Button size="xs" onClick={() => navigate("/")}>🏠 Home</Button>}
+        title="Cosmos"
+        right={<Button variant="sun" size="xs" onClick={() => navigate("/shop")}>⭐ 120 Stardust</Button>}
+      />
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 text-center">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
           Pick a Topic for {animalName}
@@ -54,6 +62,7 @@ export default function Topic() {
           </button>
         ))}
       </div>
+    </div>
     </div>
   );
 }

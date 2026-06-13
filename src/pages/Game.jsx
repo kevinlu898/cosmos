@@ -2,7 +2,6 @@ import { Response } from "../components/Response";
 import { Speech } from "../components/Speech";
 import { Animal } from "../components/Animal";
 import { Background } from "../components/Background";
-
 import { Button } from "../components/ui/button";
 import { TopBar } from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
