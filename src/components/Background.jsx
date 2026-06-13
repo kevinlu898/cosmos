@@ -1,4 +1,4 @@
-function Background(props) {
+export function Background(props) {
   return (
     <div
       className="background"
@@ -8,5 +8,3 @@ function Background(props) {
     </div>
   );
 }
-
-export default Background;
