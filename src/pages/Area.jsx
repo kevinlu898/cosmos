@@ -33,9 +33,11 @@ export default function Area() {
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
         {area.animals.map((animal) => (
-          <div
+          <button
             key={animal}
-            className="flex min-h-[240px] flex-col justify-between rounded-[2rem] border border-slate-200 bg-slate-50/90 p-6 shadow-sm transition hover:shadow-md"
+            type="button"
+            onClick={() => navigate(`/topic/${areaId}/${encodeURIComponent(animal)}`)}
+            className="flex min-h-[240px] flex-col justify-between rounded-[2rem] border border-slate-200 bg-slate-50/90 p-6 shadow-sm transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           >
             <div className="space-y-4 text-left">
               <div className="h-40 rounded-[1.5rem] bg-slate-200/80" />
@@ -43,7 +45,7 @@ export default function Area() {
                 <p className="text-2xl font-semibold text-slate-900">{animal}</p>
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
@@ -51,7 +53,7 @@ export default function Area() {
         <button
           type="button"
           className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/home')}
         >
           Back to Areas
         </button>
