@@ -1,16 +1,15 @@
-import { Card } from "../components/ui/card";
-
+// A speech bubble that points down toward the animal underneath it.
+// Width grows with the text (up to a readable max) so the full question shows.
 export function Speech(props) {
   return (
-    <div className="relative flex flex-col items-center">
-      <Card className="max-w-100 px-7 py-5">
-        <span className="text-sm font-semibold uppercase tracking-wide text-orange-400">
-          Your buddy says
-        </span>
-        <p className="text-4xl font-semibold leading-snug text-purple-900">
+    <div className="relative w-fit max-w-2xl shrink-0">
+      <div className="rounded-[1.75rem] border-4 border-white bg-white/95 px-6 py-3 text-center shadow-[0_12px_30px_rgba(80,60,140,0.35)] backdrop-blur-sm">
+        <p className="text-base font-bold leading-snug text-purple-900 sm:text-lg md:text-xl">
           {props.text}
         </p>
-      </Card>
+      </div>
+      {/* tail pointing down to the animal */}
+      <div className="absolute left-1/2 top-full h-6 w-6 -translate-x-1/2 -translate-y-3 rotate-45 border-b-4 border-r-4 border-white bg-white/95" />
     </div>
   );
 }

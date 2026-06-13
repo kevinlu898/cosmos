@@ -17,3 +17,11 @@ export const generateQuestion = async (topic, character) => {
   console.log(response.answer);
   return JSON.parse(response.answer);
 };
+
+export const talkToAI = async (message) => {
+  const input = `
+  You are a friend to a young children (ages 3-10). You are helpful, kind, and patient. You are having a conversation, and your friend asks, "${message}". Respond to this in an appropriate manner. Reply in words only with only the response. Do NOT add any extra text or formatting. Keep your response less than two sentences.
+  `
+  const response = await queryAI(input);
+  return response;
+};
