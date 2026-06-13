@@ -8,6 +8,9 @@ import { TopBar } from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { generateQuestion } from "../lib/ai";
+import correctSound from "../assets/sounds/correct.mp3";
+import wrongSound from "../assets/sounds/wrong.mp3";
+import { playSound } from "../lib/sound";
 import { supabase } from "../lib/database";
 import { addStardust, getStardust } from "../lib/utils";
 export default function Game() {
@@ -41,6 +44,8 @@ export default function Game() {
   }, []);
 
   async function handleAnswer(isCorrect) {
+    playSound(isCorrect ? correctSound : wrongSound);
+
     if (!userId) {
       return;
     }
@@ -95,40 +100,44 @@ export default function Game() {
         title="Learning Time!"
         right={
           <Button variant="sun" size="xs" onClick={() => navigate("/shop")}>
-            ⭐ 120 Stardust
+            ⭐ {stardustval} Stardust
           </Button>
         }
       />
 
       {(question || isLoadingQuestion) && (
         <Background biome="arctic">
-          <div className="flex flex-1 flex-row items-center justify-center gap-6 overflow-hidden p-6">
-            <Speech text={isLoadingQuestion ? "Loading..." : speechText} />
+          <div className="flex h-full w-full flex-col items-center justify-between gap-3 overflow-hidden p-4 sm:p-6">
+            <Speech
+              text={isLoadingQuestion ? "Thinking of a fun question…" : speechText}
+              tone={answered === null ? undefined : answered ? "correct" : "wrong"}
+            />
+
             <Animal name="Lion" />
-            {isLoadingQuestion ? (
-              <div className="flex flex-1 items-center justify-center rounded-3xl border border-white/60 bg-white/70 p-6 text-xl font-medium text-purple-900 shadow-lg">
-                Loading...
-              </div>
-            ) : answered === null ? (
-              <Response
-                type="multiple-choice"
-                options={question?.responses ?? []}
-                correct={question?.correct}
-                whenCorrect={() => handleAnswer(true)}
-                whenWrong={() => handleAnswer(false)}
-                disabled={isLoadingQuestion}
-              />
-            ) : (
-              <div className="flex items-center">
-                <button
-                  className="rounded-lg bg-purple-700 px-6 py-3 text-white disabled:opacity-50"
+
+            <div className="flex w-full items-center justify-center">
+              {isLoadingQuestion ? (
+                <LoadingDots />
+              ) : answered === null ? (
+                <Response
+                  type="multiple-choice"
+                  options={question?.responses ?? []}
+                  correct={question?.correct}
+                  whenCorrect={() => handleAnswer(true)}
+                  whenWrong={() => handleAnswer(false)}
+                  disabled={isLoadingQuestion}
+                />
+              ) : (
+                <Button
+                  variant="grape"
+                  size="lg"
                   onClick={handleNext}
                   disabled={isLoadingQuestion}
                 >
-                  Next
-                </button>
-              </div>
-            )}
+                  Next question →
+                </Button>
+              )}
+            </div>
           </div>
         </Background>
       )}
@@ -136,21 +145,19 @@ export default function Game() {
   );
 }
 
-function Navbar(props) {
-  const navigate = useNavigate();
+function LoadingDots() {
   return (
-    <nav className="flex items-center justify-between bg-white/70 px-4 py-3 shadow-[0_4px_20px_-8px_rgba(90,70,160,0.4)] backdrop-blur-sm">
-      <Button size="sm" onClick={() => navigate("/")}>
-        🏠 Home
-      </Button>
-
-      <h1 className="flex items-center gap-2 text-2xl font-bold text-purple-900 sm:text-3xl">
-        Learning Time!
-      </h1>
-
-      <Button variant="sun" size="sm" onClick={() => navigate("/shop")}>
-        ⭐ {props.stardustval} Stardust
-      </Button>
-    </nav>
+    <div className="flex items-center gap-3 rounded-full bg-white/85 px-6 py-3 text-lg font-bold text-purple-900 shadow-lg backdrop-blur-md">
+      <span className="flex gap-1">
+        {[0, 150, 300].map((d) => (
+          <span
+            key={d}
+            className="h-2.5 w-2.5 animate-bounce rounded-full bg-purple-400"
+            style={{ animationDelay: `${d}ms` }}
+          />
+        ))}
+      </span>
+      Thinking…
+    </div>
   );
 }

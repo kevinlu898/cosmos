@@ -9,15 +9,12 @@ import Topic from "./pages/Topic";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useEffect } from "react";
 import clickSound from "./assets/sounds/click.mp3";
+import { playSound } from "./lib/sound";
 
 export default function App() {
   // Play a click sound on every click, anywhere in the app.
   useEffect(() => {
-    const onClick = () => {
-      const s = new Audio(clickSound);
-      s.volume = 0.5;
-      s.play().catch(() => {});
-    };
+    const onClick = () => playSound(clickSound, 0.5);
     document.addEventListener("click", onClick, true);
     return () => document.removeEventListener("click", onClick, true);
   }, []);

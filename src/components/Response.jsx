@@ -42,13 +42,13 @@ export function Response(props) {
   }, [props.options, props.correct, props.type]);
 
   return (
-    <Card className="w-auto max-w-3xl gap-3 border-white/70 bg-white/85 p-4 backdrop-blur-md">
+    <Card className="w-auto max-h-3xl gap-3 border-white/70 bg-white/85 p-4 backdrop-blur-md">
       <p className="text-center text-lg font-bold text-purple-900">
         {props.type === "text" ? "Type your answer!" : "Pick your answer!"}
       </p>
 
       {props.type === "multiple-choice" && (
-        <div className="grid grid-rows-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {(shuffled.length ? shuffled : props.options || []).map(
             (option, index) => (
               <Button
