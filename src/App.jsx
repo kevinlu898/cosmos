@@ -21,7 +21,7 @@ export default function App() {
           <Route path="/game" element={<Game />} />
           <Route path="/area/:id" element={<Area />} />
           <Route path="/shop" element={<Shop />} />
-          <Route path="test" element={<Test />} />
+          <Route path="/test" element={<Test />} />
         </Routes>
       </div>
     </BrowserRouter>
