@@ -1,19 +1,31 @@
-import { Background } from "../components/Background";
-import { Speech } from "../components/Speech";
-import { Animal } from "../components/Animal";
-import { Response } from "../components/Response";
-function Game() {
-  // choose a question prompt.
-  // ai: generate a short conversation prompt
-  // provide three different answer choices and a correct answer.
+import {Response} from "../components/Response";
+import {Speech} from "../components/Speech";
+import {Animal} from "../components/Animal";
 
-  return (
-    <Background image="forest.jpg">
-      <Speech text="Welcome to the game!" />
-      <Animal image="lion.jpg" name="Lion" />
-      <Response text="What would you like to do?" />
-    </Background>
-  );
+import {Button} from "../components/ui/button";
+import { useNavigate } from "react-router-dom";
+
+export default function Game(){
+    return (
+        <div className="flex flex-col h-full overflow-hidden">
+            <Navbar />
+            <div className="flex flex-row flex-1 overflow-hidden">
+                <Speech text="What do you want to do together?" />
+                <Animal name="Lion" />
+                <Response
+                    type="text"
+                />
+            </div>
+        </div>
+    )
 }
 
-export default Game;
+function Navbar(){
+    const navigate = useNavigate();
+    return (
+        <nav className="flex flex-row items-center justify-center bg-blue-100 text-white p-4">
+            <Button className="absolute left-0" onClick={() => navigate("/home")}>Home</Button>
+            <h1 className="text-md font-bold">Learning Time!</h1>
+        </nav>
+    )
+}
