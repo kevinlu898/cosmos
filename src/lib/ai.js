@@ -7,12 +7,9 @@ export const queryAI = async (question) => {
   return await res.json();
 };
 
-export const generateQuestion = async (topic, character) => {
-  let min = 10;
-  let max = 20;
-  let random = Math.floor(Math.random() * (max - min + 1)) + min;
+export const generateQuestion = async (topic, character, prev) => {
   const response = await queryAI(
-    `Generate a question about ${topic} for the user, imagining that you are a ${character}. Make it for young children. Provide three responses, and indicate a correct response by an index 0-2 randomly, inclusive. Give a short, 20 word max explanation of the correct answer. There are ${random} distinct reponses that you can give, where if that number is different, you give a different response. Return data in the following format, with no changes compared to how I indicated; {"question":"XXX", "responses": ["XXX", "XXX", "XXX"], "correct": X, "explanation": "XXX"}`,
+    `Generate a question about ${topic} for the user, imagining that you are a ${character}. Make it for young children. Provide three responses, and indicate a correct response by an index 0-2 randomly, inclusive. Give a short, 20 word max explanation of the correct answer. The previous questions were: '''${prev}'''. Make sure not to generate something that already happened, and make them adaptive. Return data in the following format, with no changes compared to how I indicated; {"question":"XXX", "responses": ["XXX", "XXX", "XXX"], "correct": X, "explanation": "XXX"}`,
   );
   console.log(response.answer);
   return JSON.parse(response.answer);

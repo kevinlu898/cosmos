@@ -3,19 +3,54 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { TopBar } from "../components/Navbar";
 import earthImg from "../assets/images/earth.png";
-import {talkToAI} from "../lib/ai"
-
+import { talkToAI } from "../lib/ai";
 
 const SHELVES = [
   [
-    { name: "Rocket Boots", price: 80, icon: "rocket", desc: "Zoom across the stars in a flash!", glow: "from-orange-400 to-pink-500" },
-    { name: "Star Pet", price: 120, icon: "star", desc: "A twinkly little friend who follows you.", glow: "from-amber-300 to-yellow-500" },
-    { name: "Ringed Planet", price: 150, icon: "planet", desc: "Your very own tiny world with rings.", glow: "from-fuchsia-400 to-purple-600" },
+    {
+      name: "Hat",
+      price: 80,
+      icon: "rocket",
+      desc: "Zoom across the stars in a flash!",
+      glow: "from-orange-400 to-pink-500",
+    },
+    {
+      name: "Star Pet",
+      price: 120,
+      icon: "star",
+      desc: "A twinkly little friend who follows you.",
+      glow: "from-amber-300 to-yellow-500",
+    },
+    {
+      name: "Ringed Planet",
+      price: 150,
+      icon: "planet",
+      desc: "Your very own tiny world with rings.",
+      glow: "from-fuchsia-400 to-purple-600",
+    },
   ],
   [
-    { name: "Alien Buddy", price: 100, icon: "ufo", desc: "Say hi to a friend from far away.", glow: "from-green-300 to-emerald-500" },
-    { name: "Comet Tail", price: 90, icon: "comet", desc: "Leave a sparkly trail behind you!", glow: "from-cyan-300 to-blue-500" },
-    { name: "Space Helmet", price: 110, icon: "helmet", desc: "Stay cool and safe on space walks.", glow: "from-sky-300 to-indigo-500" },
+    {
+      name: "Alien Buddy",
+      price: 100,
+      icon: "ufo",
+      desc: "Say hi to a friend from far away.",
+      glow: "from-green-300 to-emerald-500",
+    },
+    {
+      name: "Comet Tail",
+      price: 90,
+      icon: "comet",
+      desc: "Leave a sparkly trail behind you!",
+      glow: "from-cyan-300 to-blue-500",
+    },
+    {
+      name: "Space Helmet",
+      price: 110,
+      icon: "helmet",
+      desc: "Stay cool and safe on space walks.",
+      glow: "from-sky-300 to-indigo-500",
+    },
   ],
 ];
 
@@ -40,7 +75,11 @@ export default function Shop() {
 
       {/* Top nav bar*/}
       <TopBar
-        left={<Button size="xs" onClick={() => navigate("/")}>🌎 Return to Earth</Button>}
+        left={
+          <Button size="xs" onClick={() => navigate("/")}>
+            🌎 Return to Earth
+          </Button>
+        }
         title="Space Shop"
         right={
           <div className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-sm font-bold text-white shadow-md">
@@ -107,11 +146,15 @@ function ShelfItem({ item, placement = "up" }) {
         onMouseEnter={show}
         onMouseLeave={hide}
         className={`absolute left-1/2 z-40 w-48 ${down ? "top-full mt-3" : "bottom-full mb-3"} -translate-x-1/2 rounded-2xl border-2 border-white bg-white p-3 text-center text-purple-900 shadow-[0_16px_36px_rgba(0,0,0,0.55)] transition duration-150 ${
-          open ? "scale-100 opacity-100" : "pointer-events-none scale-90 opacity-0"
+          open
+            ? "scale-100 opacity-100"
+            : "pointer-events-none scale-90 opacity-0"
         }`}
       >
         <p className="text-base font-bold">{item.name}</p>
-        <p className="mt-0.5 text-xs leading-snug text-purple-500">{item.desc}</p>
+        <p className="mt-0.5 text-xs leading-snug text-purple-500">
+          {item.desc}
+        </p>
         <div className="mt-2 flex items-center justify-center gap-1 text-sm font-bold text-amber-500">
           <StarGlyph className="h-4 w-4" />
           {item.price} Stardust
@@ -142,7 +185,10 @@ function ShelfItem({ item, placement = "up" }) {
           }`}
         >
           <span className="absolute inset-0 rounded-2xl bg-[radial-gradient(circle_at_30%_25%,rgba(255,255,255,0.6),transparent_55%)]" />
-          <ItemIcon type={item.icon} className="relative h-10 w-10 drop-shadow-md sm:h-12 sm:w-12" />
+          <ItemIcon
+            type={item.icon}
+            className="relative h-10 w-10 drop-shadow-md sm:h-12 sm:w-12"
+          />
         </span>
       </button>
 
@@ -173,7 +219,12 @@ function EarthWindow() {
         })}
 
         <div className="relative h-full w-full overflow-hidden rounded-full bg-[radial-gradient(circle_at_50%_38%,#101a44,#05010a)]">
-          <img onClick={() => navigate("/")} src={earthImg} alt="Earth" className="h-full w-full object-cover cursor-pointer" />
+          <img
+            onClick={() => navigate("/")}
+            src={earthImg}
+            alt="Earth"
+            className="h-full w-full object-cover cursor-pointer"
+          />
         </div>
       </div>
     </div>
@@ -235,7 +286,10 @@ function InteractiveRobot() {
         aria-label="Talk to the robot shopkeeper"
         className={`shrink-0 cursor-pointer transition-transform hover:scale-105 active:scale-95 ${reacting ? "animate-bounce" : ""}`}
       >
-        <RobotKeeper waving={reacting} className="h-24 w-20 drop-shadow-[0_8px_12px_rgba(0,0,0,0.55)] sm:h-28 sm:w-24" />
+        <RobotKeeper
+          waving={reacting}
+          className="h-24 w-20 drop-shadow-[0_8px_12px_rgba(0,0,0,0.55)] sm:h-28 sm:w-24"
+        />
       </button>
 
       <div className="mb-2 flex w-[210px] flex-col gap-2 sm:mb-3 sm:w-[240px]">
@@ -286,9 +340,14 @@ function HullPanel({ side }) {
           : "right-0 bg-linear-to-l from-slate-800 via-slate-700/80")
       }
     >
-      <div className={`absolute inset-y-0 ${isLeft ? "right-3" : "left-3"} flex flex-col items-center justify-around py-10`}>
+      <div
+        className={`absolute inset-y-0 ${isLeft ? "right-3" : "left-3"} flex flex-col items-center justify-around py-10`}
+      >
         {Array.from({ length: 9 }).map((_, i) => (
-          <span key={i} className="h-2.5 w-2.5 rounded-full bg-slate-500 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]" />
+          <span
+            key={i}
+            className="h-2.5 w-2.5 rounded-full bg-slate-500 shadow-[inset_0_1px_1px_rgba(255,255,255,0.4)]"
+          />
         ))}
       </div>
     </div>
@@ -302,7 +361,13 @@ function Starfield() {
         <span
           key={i}
           className={`absolute rounded-full bg-white ${s.twinkle ? "animate-pulse" : ""}`}
-          style={{ left: `${s.x}%`, top: `${s.y}%`, width: s.size, height: s.size, opacity: 0.5 + s.size / 6 }}
+          style={{
+            left: `${s.x}%`,
+            top: `${s.y}%`,
+            width: s.size,
+            height: s.size,
+            opacity: 0.5 + s.size / 6,
+          }}
         />
       ))}
     </div>
@@ -315,18 +380,60 @@ function RobotKeeper({ waving = false, className = "" }) {
     <svg viewBox="0 0 120 140" className={className} fill="none">
       <line x1="60" y1="22" x2="60" y2="8" stroke="#94a3b8" strokeWidth="3" />
       <circle cx="60" cy="7" r="5" fill="#f472b6" className="animate-pulse" />
-      <rect x="26" y="22" width="68" height="50" rx="18" fill="#e2e8f0" stroke="#94a3b8" strokeWidth="3" />
+      <rect
+        x="26"
+        y="22"
+        width="68"
+        height="50"
+        rx="18"
+        fill="#e2e8f0"
+        stroke="#94a3b8"
+        strokeWidth="3"
+      />
       <rect x="35" y="31" width="50" height="32" rx="12" fill="#0f172a" />
       <circle cx="50" cy="46" r="5" fill="#38bdf8" />
       <circle cx="70" cy="46" r="5" fill="#38bdf8" />
-      <path d="M49 54 q11 9 22 0" stroke="#38bdf8" strokeWidth="3" fill="none" strokeLinecap="round" />
-      <rect x="32" y="76" width="56" height="46" rx="16" fill="#cbd5e1" stroke="#94a3b8" strokeWidth="3" />
+      <path
+        d="M49 54 q11 9 22 0"
+        stroke="#38bdf8"
+        strokeWidth="3"
+        fill="none"
+        strokeLinecap="round"
+      />
+      <rect
+        x="32"
+        y="76"
+        width="56"
+        height="46"
+        rx="16"
+        fill="#cbd5e1"
+        stroke="#94a3b8"
+        strokeWidth="3"
+      />
       <circle cx="60" cy="98" r="9" fill="#a78bfa" />
-      <path d="M88 88 q14 4 14 20" stroke="#94a3b8" strokeWidth="7" fill="none" strokeLinecap="round" />
+      <path
+        d="M88 88 q14 4 14 20"
+        stroke="#94a3b8"
+        strokeWidth="7"
+        fill="none"
+        strokeLinecap="round"
+      />
       {waving ? (
-        <path d="M32 86 q-18 -8 -14 -28" stroke="#94a3b8" strokeWidth="7" fill="none" strokeLinecap="round" />
+        <path
+          d="M32 86 q-18 -8 -14 -28"
+          stroke="#94a3b8"
+          strokeWidth="7"
+          fill="none"
+          strokeLinecap="round"
+        />
       ) : (
-        <path d="M32 88 q-16 -2 -16 -22" stroke="#94a3b8" strokeWidth="7" fill="none" strokeLinecap="round" />
+        <path
+          d="M32 88 q-16 -2 -16 -22"
+          stroke="#94a3b8"
+          strokeWidth="7"
+          fill="none"
+          strokeLinecap="round"
+        />
       )}
     </svg>
   );
@@ -344,7 +451,16 @@ function ItemIcon({ type, className = "" }) {
           <circle cx="30" cy="30" r="18" fill="#fff" />
           <circle cx="24" cy="24" r="4" fill="#000" opacity="0.12" />
           <circle cx="36" cy="34" r="3" fill="#000" opacity="0.12" />
-          <ellipse cx="32" cy="34" rx="30" ry="9" fill="none" stroke="#fff" strokeWidth="4" transform="rotate(-22 32 34)" />
+          <ellipse
+            cx="32"
+            cy="34"
+            rx="30"
+            ry="9"
+            fill="none"
+            stroke="#fff"
+            strokeWidth="4"
+            transform="rotate(-22 32 34)"
+          />
         </svg>
       );
     case "ufo":
@@ -361,8 +477,20 @@ function ItemIcon({ type, className = "" }) {
     case "comet":
       return (
         <svg viewBox="0 0 64 64" className={className} fill="none">
-          <path d="M44 18 L18 44" stroke="#fff" strokeWidth="5" strokeLinecap="round" opacity="0.5" />
-          <path d="M50 14 L26 38" stroke="#fff" strokeWidth="5" strokeLinecap="round" opacity="0.3" />
+          <path
+            d="M44 18 L18 44"
+            stroke="#fff"
+            strokeWidth="5"
+            strokeLinecap="round"
+            opacity="0.5"
+          />
+          <path
+            d="M50 14 L26 38"
+            stroke="#fff"
+            strokeWidth="5"
+            strokeLinecap="round"
+            opacity="0.3"
+          />
           <circle cx="44" cy="20" r="11" fill="#fff" />
           <circle cx="40" cy="16" r="3" fill="#000" opacity="0.12" />
         </svg>
@@ -371,7 +499,11 @@ function ItemIcon({ type, className = "" }) {
       return (
         <svg viewBox="0 0 64 64" className={className} fill="none">
           <circle cx="32" cy="32" r="22" fill="#fff" />
-          <path d="M18 30 a14 13 0 0 1 28 0 v6 a14 11 0 0 1 -28 0 z" fill="#0f172a" opacity="0.85" />
+          <path
+            d="M18 30 a14 13 0 0 1 28 0 v6 a14 11 0 0 1 -28 0 z"
+            fill="#0f172a"
+            opacity="0.85"
+          />
           <ellipse cx="26" cy="28" rx="5" ry="7" fill="#fff" opacity="0.7" />
         </svg>
       );
@@ -383,7 +515,10 @@ function ItemIcon({ type, className = "" }) {
 function RocketGlyph({ className = "" }) {
   return (
     <svg viewBox="0 0 64 64" className={className} fill="none">
-      <path d="M32 6 C42 14 45 26 45 36 C45 41 43 45 41 48 H23 C21 45 19 41 19 36 C19 26 22 14 32 6 Z" fill="#fff" />
+      <path
+        d="M32 6 C42 14 45 26 45 36 C45 41 43 45 41 48 H23 C21 45 19 41 19 36 C19 26 22 14 32 6 Z"
+        fill="#fff"
+      />
       <circle cx="32" cy="28" r="6" fill="#38bdf8" />
       <path d="M23 44 L12 54 L24 50 Z" fill="#fb7185" />
       <path d="M41 44 L52 54 L40 50 Z" fill="#fb7185" />
@@ -395,7 +530,11 @@ function RocketGlyph({ className = "" }) {
 function StarGlyph({ className = "" }) {
   return (
     <svg viewBox="0 0 64 64" className={className} fill="none">
-      <path d="M32 4 L40 24 L62 26 L45 40 L50 62 L32 50 L14 62 L19 40 L2 26 L24 24 Z" fill="currentColor" className="text-amber-300" />
+      <path
+        d="M32 4 L40 24 L62 26 L45 40 L50 62 L32 50 L14 62 L19 40 L2 26 L24 24 Z"
+        fill="currentColor"
+        className="text-amber-300"
+      />
     </svg>
   );
 }

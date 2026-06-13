@@ -48,22 +48,23 @@ export function Response(props) {
       </p>
 
       {props.type === "multiple-choice" && (
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-3 items-stretch gap-3">
           {(shuffled.length ? shuffled : props.options || []).map(
             (option, index) => (
               <Button
                 key={index}
                 variant={CHOICE_VARIANTS[index % CHOICE_VARIANTS.length]}
                 size="lg"
+                className="h-auto min-h-16 w-full max-w-full whitespace-normal break-words px-4 py-3 text-center text-lg leading-snug"
                 disabled={props.disabled}
                 onClick={() => {
                   const correctIndex = shuffled.length
                     ? shuffledCorrect
                     : props.correct;
                   if (index === correctIndex) {
-                    props.whenCorrect();
+                    props.whenCorrect(option);
                   } else {
-                    props.whenWrong();
+                    props.whenWrong(option);
                   }
                 }}
               >
