@@ -2,6 +2,8 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { supabase } from "../lib/database.js";
 import {getById} from "../lib/database.js";
+import { TopBar } from "../components/Navbar";
+import { Button } from "../components/ui/button";
 
 const AREAS = [
   {
@@ -49,7 +51,13 @@ export default function Home() {
   };
 
   return (
-    <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 text-center">
+    <div className="flex h-full flex-col overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
+      <TopBar
+        left={<Button variant="destructive" size="xs" onClick={handleLogout}>Log Out</Button>}
+        title="Cosmos"
+        right={<Button variant="sun" size="xs" onClick={() => navigate("/shop")}>⭐ 120 Stardust</Button>}
+      />
+      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 text-center">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
           Hello, {name}!
@@ -77,13 +85,7 @@ export default function Home() {
           </button>
         ))}
       </div>
-
-      <button
-        onClick={handleLogout}
-        className="fixed left-4 bottom-4 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium shadow"
-      >
-        Log out
-      </button>
+      </div>
     </div>
   );
 }

@@ -44,7 +44,7 @@ export default function Shop() {
         title="Space Shop"
         right={
           <div className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-sm font-bold text-white shadow-md">
-            ⭐ 120
+            ⭐ 120 Stardust
           </div>
         }
       />
