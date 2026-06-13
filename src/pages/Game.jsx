@@ -10,8 +10,17 @@ import { generateQuestion } from "../lib/ai";
 import correctSound from "../assets/sounds/correct.mp3";
 import wrongSound from "../assets/sounds/wrong.mp3";
 import { playSound } from "../lib/sound";
+import { speak, stopSpeaking, isSpeechSupported } from "../lib/speech";
 import { supabase } from "../lib/database";
 import { addStardust, getStardust } from "../lib/utils";
+
+// Read the question and its answer choices aloud as one friendly prompt.
+function questionSpeech(q) {
+  if (!q) return "";
+  const choices = Array.isArray(q.responses) ? q.responses : [];
+  if (!choices.length) return q.question;
+  return `${q.question} Your choices are: ${choices.join(", ")}.`;
+}
 export default function Game() {
   const navigate = useNavigate();
   const [question, setQuestion] = useState(null);
@@ -32,6 +41,8 @@ export default function Game() {
       console.log(questionr);
       setQuestion(questionr);
       setSpeechText(questionr.question);
+      // Read the question and choices aloud (free browser text-to-speech).
+      speak(questionSpeech(questionr));
     } finally {
       setIsLoadingQuestion(false);
     }
@@ -45,17 +56,26 @@ export default function Game() {
     initializeQuestion();
   }, []);
 
+  // Stop any speech when leaving the page so it doesn't keep talking.
+  useEffect(() => () => stopSpeaking(), []);
+
+  // Re-read whatever the animal is currently "saying".
+  function replaySpeech() {
+    speak(answered === null ? questionSpeech(question) : speechText);
+  }
+
   async function handleAnswer(isCorrect) {
     playSound(isCorrect ? correctSound : wrongSound);
 
     if (!userId) {
       return;
     }
-    setSpeechText(
-      isCorrect
-        ? "Correct! " + question?.explanation
-        : "Wrong. " + question?.explanation,
-    );
+    const feedback = isCorrect
+      ? "Correct! " + question?.explanation
+      : "Sorry, that's wrong. " + question?.explanation;
+    setSpeechText(feedback);
+    // Read the feedback aloud (free browser text-to-speech).
+    speak(feedback);
 
     // mark answered and don't generate the next question until the user clicks Next
     setAnswered(isCorrect);
@@ -77,7 +97,8 @@ export default function Game() {
   }
 
   async function handleNext() {
-    // clear answered state, load next question
+    // stop any feedback audio that's still playing, then load the next question
+    stopSpeaking();
     setAnswered(null);
     await genQuestion();
   }
@@ -110,14 +131,27 @@ export default function Game() {
       {(question || isLoadingQuestion) && (
         <Background biome="arctic">
           <div className="flex h-full w-full flex-col items-center justify-between gap-3 overflow-hidden p-4 sm:p-6">
-            <Speech
-              text={
-                isLoadingQuestion ? "Thinking of a fun question…" : speechText
-              }
-              tone={
-                answered === null ? undefined : answered ? "correct" : "wrong"
-              }
-            />
+            <div className="flex shrink-0 items-start gap-2">
+              <Speech
+                text={
+                  isLoadingQuestion ? "Thinking of a fun question…" : speechText
+                }
+                tone={
+                  answered === null ? undefined : answered ? "correct" : "wrong"
+                }
+              />
+              {isSpeechSupported() && !isLoadingQuestion && (
+                <Button
+                  variant="secondary"
+                  size="xs"
+                  onClick={replaySpeech}
+                  aria-label="Hear it again"
+                  title="Hear it again"
+                >
+                  🔊
+                </Button>
+              )}
+            </div>
 
             <Animal name="Lion" />
 
