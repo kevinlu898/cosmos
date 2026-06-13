@@ -1,0 +1,38 @@
+{
+    "deer": {
+        "name": "Daisy",
+        "biome": "grassland"
+    }, 
+    "fox": {
+        "name": "Freddy",
+        "biome": "forest"
+    },
+    "bear": {
+        "name": "Benny",
+        "biome": "forest"
+    },
+    "lion": {
+        "name": "Leo",
+        "biome": "grassland"
+    },
+    "giraffe": {
+        "name": "Georgie",
+        "biome": "grassland"
+    },
+    "elephant": {
+        "name": "Ellie",
+        "biome": "grassland"
+    },
+    "penguin": {
+        "name": "Penny",
+        "biome": "artic"
+    },
+    "polar_bear": {
+        "name": "Peter",
+        "biome": "artic"
+    },
+    "walrus": {
+        "name": "Willie",
+        "biome": "artic"
+    }
+}
