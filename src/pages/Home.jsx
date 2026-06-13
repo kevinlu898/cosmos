@@ -1,4 +1,7 @@
 import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "../lib/database.js";
+import {getById} from "../lib/database.js";
 
 const AREAS = [
   {
@@ -17,12 +20,29 @@ const AREAS = [
 
 export default function Home() {
   const navigate = useNavigate();
+  const [name, setName] = useState("User");
+
+  useEffect(() => {
+    const fetchUserName = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.id) {
+        const row = await getById("profiles", session.user.id, { column: "user_id" });
+        if (row?.name) setName(row.name);
+      }
+    };
+    fetchUserName();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
 
   return (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 text-center">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
-          Hello, username!
+          Hello, {name}!
         </h1>
         <p className="mt-4 text-lg leading-8 text-slate-600">
           Pick an Area!
@@ -47,6 +67,13 @@ export default function Home() {
           </button>
         ))}
       </div>
+
+      <button
+        onClick={handleLogout}
+        className="fixed left-4 bottom-4 rounded-md border border-slate-200 bg-white px-4 py-2 text-sm font-medium shadow"
+      >
+        Log out
+      </button>
     </div>
   );
-} 
+}

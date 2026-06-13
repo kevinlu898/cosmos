@@ -51,7 +51,7 @@ export default function Area() {
         <button
           type="button"
           className="rounded-full border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
-          onClick={() => navigate('/')}
+          onClick={() => navigate('/home')}
         >
           Back to Areas
         </button>
