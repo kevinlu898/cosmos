@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { createClient } from "@supabase/supabase-js";
-import { supabase, create, update, list } from "./lib/database.js"
+import { supabase, create, update, list } from "./lib/database.js";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 
@@ -32,10 +32,15 @@ function App() {
     const newClicks = clicks + 1;
     setClicks(newClicks);
     if (countRow) {
-      const updated = await update("counts", countRow.id, { clickTimes: newClicks });
+      const updated = await update("counts", countRow.id, {
+        clickTimes: newClicks,
+      });
       setCountRow(updated);
     } else {
-      const created = await create("counts", { clickTimes: newClicks, user_id: claims.sub });
+      const created = await create("counts", {
+        clickTimes: newClicks,
+        user_id: claims.sub,
+      });
       setCountRow(created);
     }
   }
@@ -124,9 +129,7 @@ function App() {
     return (
       <div>
         <h1>Welcome {claims.email}</h1>
-        <Button onClick={() => click()}>
-          Click me
-        </Button>
+        <Button onClick={() => click()}>Click me</Button>
         <p>Clicks: {clicks}</p>
         <Button onClick={() => handleLogout()}>logout</Button>
       </div>
