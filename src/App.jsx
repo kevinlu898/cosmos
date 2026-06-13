@@ -27,7 +27,7 @@ export default function App() {
           <Route path="/area/:areaId" element={<Area />} />
           <Route path="/topic/:areaId/:animal" element={<Topic />} />
           <Route path="/shop" element={<Shop />} />
-          <Route path="test" element={<Test />} />
+          <Route path="/test" element={<Test />} />
         </Routes>
       </div>
     </BrowserRouter>
