@@ -1,10 +1,7 @@
-/* ====================================================================
-   Biome backgrounds — forest, arctic, grassland (savanna)
-   Built from HTML + inline SVG, with a clear center stage for the animal.
-   Gentle looping animations (rustle / sway / slow falling) live in the
-   scoped <style> block at the bottom so nothing global is affected.
-   Usage:  <Background biome="forest"><Animal .../></Background>
-   ==================================================================== */
+import { useEffect } from "react";
+import treeSounds from "../assets/sounds/treeSounds.mp3";
+import grassSounds from "../assets/sounds/grassSounds.mp3";
+import windSounds from "../assets/sounds/windSounds.mp3";
 
 const SKY = {
   forest: "bg-linear-to-b from-sky-300 via-emerald-50 to-emerald-100",
@@ -19,15 +16,61 @@ function normalize(biome) {
   return "forest";
 }
 
+const SOUND = {
+  forest: treeSounds,
+  arctic: windSounds,
+  grassland: grassSounds,
+};
+
 function Background({ biome = "forest", children }) {
   const b = normalize(biome);
   const Scene = { forest: ForestScene, arctic: ArcticScene, grassland: GrasslandScene }[b];
+
+  // Play the biome's sound for exactly 10 seconds. 
+  useEffect(() => {
+    const audio = new Audio(SOUND[b]);
+    audio.loop = true; 
+    audio.volume = 0.4;
+
+    let stopTimer;
+    let removeGesture = () => {};
+
+    const playFor10s = () => {
+      audio.currentTime = 0;
+      audio
+        .play()
+        .then(() => {
+          clearTimeout(stopTimer);
+          stopTimer = setTimeout(() => audio.pause(), 10000);
+        })
+        .catch(() => {
+          const start = () => {
+            removeGesture();
+            playFor10s();
+          };
+          window.addEventListener("pointerdown", start, { once: true });
+          window.addEventListener("keydown", start, { once: true });
+          removeGesture = () => {
+            window.removeEventListener("pointerdown", start);
+            window.removeEventListener("keydown", start);
+          };
+        });
+    };
+
+    playFor10s();
+
+    return () => {
+      removeGesture();
+      clearTimeout(stopTimer);
+      audio.pause();
+      audio.src = "";
+    };
+  }, [b]);
 
   return (
     <div className={`relative h-full w-full overflow-hidden ${SKY[b]}`}>
       <Scene />
 
-      {/* main stage for the biome's animal */}
       <div className="relative z-20 flex h-full w-full items-center justify-center px-4">
         {children}
       </div>
@@ -40,9 +83,6 @@ function Background({ biome = "forest", children }) {
 export { Background };
 export default Background;
 
-/* ===================================================================
-   FOREST
-   =================================================================== */
 function ForestScene() {
   return (
     <div className="pointer-events-none absolute inset-0">
@@ -77,9 +117,6 @@ function ForestScene() {
   );
 }
 
-/* ===================================================================
-   ARCTIC
-   =================================================================== */
 function ArcticScene() {
   return (
     <div className="pointer-events-none absolute inset-0">
@@ -114,9 +151,6 @@ function ArcticScene() {
   );
 }
 
-/* ===================================================================
-   GRASSLAND / SAVANNA
-   =================================================================== */
 function GrasslandScene() {
   return (
     <div className="pointer-events-none absolute inset-0">
@@ -150,9 +184,6 @@ function GrasslandScene() {
   );
 }
 
-/* ===================================================================
-   Shared little pieces
-   =================================================================== */
 function Cloud({ className = "", style }) {
   return (
     <div className={`absolute ${className}`} style={style}>
@@ -247,7 +278,7 @@ function SmilingSun({ className = "" }) {
 }
 
 function GrassBlade({ i }) {
-  const h = 50 + (i % 5) * 14; // % of the grass strip
+  const h = 50 + (i % 5) * 14; 
   const colors = ["bg-lime-600", "bg-green-600", "bg-amber-500", "bg-lime-500"];
   return (
     <div
