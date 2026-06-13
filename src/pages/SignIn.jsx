@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/database.js";
 import { Button } from "../components/ui/button.jsx";
@@ -9,6 +9,12 @@ export default function SignIn() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  useEffect(() => {
+    if (localStorage.getItem("userLoggedIn") === "true") {
+      navigate("/home");
+    }
+  }, [navigate]);
+
   async function handleSignIn() {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -16,13 +22,18 @@ export default function SignIn() {
         alert(error.message || error.error_description);
         return;
       }
-      // try to fetch profile name
+      localStorage.setItem("userLoggedIn", "true");
+      localStorage.setItem("userEmail", email);
       try {
         const { data: profile, error: pErr } = await supabase.from('profiles').select('name').eq('user_id', data.user.id).maybeSingle();
         if (!pErr && profile?.name) {
+          localStorage.setItem('userName', profile.name);
+        } else {
+          localStorage.setItem('userName', email);
         }
       } catch (err) {
         console.warn('profile fetch failed', err);
+        localStorage.setItem('userName', email);
       }
       navigate('/home');
     } catch (err) {

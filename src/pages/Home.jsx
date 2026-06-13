@@ -27,7 +27,14 @@ export default function Home() {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user?.id) {
         const row = await getById("profiles", session.user.id, { column: "user_id" });
-        if (row?.name) setName(row.name);
+        if (row?.name) {
+          setName(row.name);
+          return;
+        }
+      }
+      if (localStorage.getItem("userLoggedIn") === "true") {
+        const storedName = localStorage.getItem("userName");
+        if (storedName) setName(storedName);
       }
     };
     fetchUserName();
@@ -35,6 +42,9 @@ export default function Home() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
+    localStorage.removeItem("userLoggedIn");
+    localStorage.removeItem("userEmail");
+    localStorage.removeItem("userName");
     navigate("/");
   };
 
