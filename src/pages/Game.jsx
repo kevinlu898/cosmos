@@ -87,57 +87,50 @@ export default function Game() {
   return (
     <div className="flex h-full flex-col overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
       <TopBar
-        left={<Button size="xs" onClick={() => navigate("/")}>🏠 Home</Button>}
+        left={
+          <Button size="xs" onClick={() => navigate("/")}>
+            🏠 Home
+          </Button>
+        }
         title="Learning Time!"
-        right={<Button variant="sun" size="xs" onClick={() => navigate("/shop")}>⭐ 120 Stardust</Button>}
+        right={
+          <Button variant="sun" size="xs" onClick={() => navigate("/shop")}>
+            ⭐ 120 Stardust
+          </Button>
+        }
       />
-    <div className="flex h-full flex-col overflow-hidden bg-linear-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
-      <Navbar stardustval={stardustval} />
 
       {(question || isLoadingQuestion) && (
-        <div className="flex flex-1 flex-row items-center justify-center gap-6 overflow-hidden p-6">
-          <Speech text={isLoadingQuestion ? "Loading..." : speechText} />
-          <Animal name="Lion" />
-          {isLoadingQuestion ? (
-            <div className="flex flex-1 items-center justify-center rounded-3xl border border-white/60 bg-white/70 p-6 text-xl font-medium text-purple-900 shadow-lg">
-              Loading...
-            </div>
-          ) : answered === null ? (
-            <Response
-              type="multiple-choice"
-              options={question?.responses ?? []}
-              correct={question?.correct}
-              whenCorrect={() => handleAnswer(true)}
-              whenWrong={() => handleAnswer(false)}
-              disabled={isLoadingQuestion}
-            />
-          ) : (
-            <div className="flex items-center">
-              <button
-                className="rounded-lg bg-purple-700 px-6 py-3 text-white disabled:opacity-50"
-                onClick={handleNext}
-                disabled={isLoadingQuestion}
-              >
-                Next
-              </button>
-            </div>
-          )}
-      {question && (
-        <div className="relative flex-1 overflow-hidden">
-          <Background biome="artic">
-            <div className="flex h-full w-full flex-col items-center justify-between gap-3 p-4 sm:p-6">
-              <Speech text={question.question} />
-              <Animal name="Lion" />
+        <Background biome="arctic">
+          <div className="flex flex-1 flex-row items-center justify-center gap-6 overflow-hidden p-6">
+            <Speech text={isLoadingQuestion ? "Loading..." : speechText} />
+            <Animal name="Lion" />
+            {isLoadingQuestion ? (
+              <div className="flex flex-1 items-center justify-center rounded-3xl border border-white/60 bg-white/70 p-6 text-xl font-medium text-purple-900 shadow-lg">
+                Loading...
+              </div>
+            ) : answered === null ? (
               <Response
                 type="multiple-choice"
-                options={question.responses}
-                correct={question.correct}
-                whenCorrect={whenCorrect}
-                whenWrong={whenWrong}
+                options={question?.responses ?? []}
+                correct={question?.correct}
+                whenCorrect={() => handleAnswer(true)}
+                whenWrong={() => handleAnswer(false)}
+                disabled={isLoadingQuestion}
               />
-            </div>
-          </Background>
-        </div>
+            ) : (
+              <div className="flex items-center">
+                <button
+                  className="rounded-lg bg-purple-700 px-6 py-3 text-white disabled:opacity-50"
+                  onClick={handleNext}
+                  disabled={isLoadingQuestion}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </div>
+        </Background>
       )}
     </div>
   );
