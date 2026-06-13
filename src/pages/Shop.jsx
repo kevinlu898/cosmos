@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { TopBar } from "../components/Navbar";
 import earthImg from "../assets/images/earth.png";
+import {talkToAI} from "../lib/ai"
+
 
 const SHELVES = [
   [
@@ -152,6 +154,7 @@ function ShelfItem({ item, placement = "up" }) {
 /*  Earth porthole window */
 function EarthWindow() {
   const bolts = Array.from({ length: 12 }, (_, i) => i * 30);
+  const navigate = useNavigate();
 
   return (
     <div className="flex shrink-0 flex-col items-center justify-center gap-3 lg:w-[40%] mb-10">
@@ -170,7 +173,7 @@ function EarthWindow() {
         })}
 
         <div className="relative h-full w-full overflow-hidden rounded-full bg-[radial-gradient(circle_at_50%_38%,#101a44,#05010a)]">
-          <img src={earthImg} alt="Earth" className="h-full w-full object-cover" />
+          <img onClick={() => navigate("/")} src={earthImg} alt="Earth" className="h-full w-full object-cover cursor-pointer" />
         </div>
       </div>
     </div>
@@ -190,11 +193,38 @@ const ROBOT_LINES = [
 function InteractiveRobot() {
   const [line, setLine] = useState(0);
   const [reacting, setReacting] = useState(false);
+  const [aiResponse, setAiResponse] = useState(null);
+  const [thinking, setThinking] = useState(false);
+  const [input, setInput] = useState("");
 
-  const tap = () => {
-    setLine((p) => (p + 1) % ROBOT_LINES.length);
+  const wave = () => {
     setReacting(true);
     setTimeout(() => setReacting(false), 700);
+  };
+
+  const tap = () => {
+    if (aiResponse) setAiResponse(null);
+    else setLine((p) => (p + 1) % ROBOT_LINES.length);
+    wave();
+  };
+
+  const ask = async (e) => {
+    e.preventDefault();
+    const q = input.trim();
+    if (!q || thinking) return;
+    setInput("");
+    setAiResponse(null);
+    setThinking(true);
+    wave();
+    try {
+      const res = await talkToAI(q);
+      const text = typeof res === "string" ? res : res?.answer;
+      setAiResponse(text?.trim() || "Hmm, I'm not sure about that one!");
+    } catch {
+      setAiResponse("Beep… my circuits got fuzzy. Try again!");
+    } finally {
+      setThinking(false);
+    }
   };
 
   return (
@@ -208,11 +238,39 @@ function InteractiveRobot() {
         <RobotKeeper waving={reacting} className="h-24 w-20 drop-shadow-[0_8px_12px_rgba(0,0,0,0.55)] sm:h-28 sm:w-24" />
       </button>
 
-      <div className="mb-5 max-w-[200px] rounded-2xl rounded-bl-sm bg-white/95 px-3 py-2 text-sm font-semibold text-purple-900 shadow-lg sm:mb-7">
-        {ROBOT_LINES[line]}
-        <span className="mt-0.5 block text-[10px] font-normal text-purple-400">tap me!</span>
+      <div className="mb-2 flex w-[210px] flex-col gap-2 sm:mb-3 sm:w-[240px]">
+        <div className="min-h-[2.5rem] rounded-2xl rounded-bl-sm bg-white/95 px-3 py-2 text-sm font-semibold text-purple-900 shadow-lg">
+          {thinking ? <ThinkingDots /> : aiResponse || ROBOT_LINES[line]}
+        </div>
+
+        <form onSubmit={ask} className="flex items-center gap-1.5">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Ask me anything…"
+            disabled={thinking}
+            className="w-full rounded-full border-2 border-violet-300 bg-white px-3 py-1 text-sm text-purple-900 outline-none placeholder:text-purple-300 focus:border-violet-500 disabled:opacity-60"
+          />
+          <Button type="submit" variant="grape" size="xs" disabled={thinking}>
+            Ask
+          </Button>
+        </form>
       </div>
     </div>
+  );
+}
+
+function ThinkingDots() {
+  return (
+    <span className="inline-flex items-center gap-1 py-1" aria-label="thinking">
+      {[0, 150, 300].map((d) => (
+        <span
+          key={d}
+          className="h-2 w-2 animate-bounce rounded-full bg-purple-400"
+          style={{ animationDelay: `${d}ms` }}
+        />
+      ))}
+    </span>
   );
 }
 

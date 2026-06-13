@@ -1,6 +1,7 @@
 import { Response } from "../components/Response";
 import { Speech } from "../components/Speech";
 import { Animal } from "../components/Animal";
+import { Background } from "../components/Background";
 
 import { Button } from "../components/ui/button";
 import { TopBar } from "../components/Navbar";
@@ -55,16 +56,20 @@ export default function Game() {
       />
 
       {question && (
-        <div className="flex flex-1 flex-row items-center justify-center gap-6 overflow-hidden p-6">
-          <Speech text={question.question} />
-          <Animal name="Lion" />
-          <Response
-            type="multiple-choice"
-            options={question.responses}
-            correct={question.correct}
-            whenCorrect={whenCorrect}
-            whenWrong={whenWrong}
-          />
+        <div className="relative flex-1 overflow-hidden">
+          <Background biome="artic">
+            <div className="flex h-full w-full flex-col items-center justify-between gap-3 p-4 sm:p-6">
+              <Speech text={question.question} />
+              <Animal name="Lion" />
+              <Response
+                type="multiple-choice"
+                options={question.responses}
+                correct={question.correct}
+                whenCorrect={whenCorrect}
+                whenWrong={whenWrong}
+              />
+            </div>
+          </Background>
         </div>
       )}
     </div>
