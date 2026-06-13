@@ -1,8 +1,7 @@
-export default function Response(){
+export default function Response(props){
     return (
         <div className="response">
-            <h2>Response</h2>
-            <p>This is a simple response component.</p>
+            <h2>Choose a response</h2>
         </div>
     );
 }
