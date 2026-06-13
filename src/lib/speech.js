@@ -1,108 +1,104 @@
-const supported = typeof window !== "undefined" && "speechSynthesis" in window;
+const API_KEY = import.meta.env.VITE_DEEPGRAM_API_KEY;
 
-console.log("[speech] module loaded, supported =", supported);
+const MODEL = "aura-2-thalia-en";
 
-let voicesPromise = null;
+const supported = typeof window !== "undefined" && typeof Audio !== "undefined" && !!API_KEY;
 
-function loadVoices() {
-  if (!supported) return Promise.resolve([]);
-  if (voicesPromise) return voicesPromise;
+let currentAudio = null;
+let playToken = 0;
 
-  voicesPromise = new Promise((resolve) => {
-    const existing = window.speechSynthesis.getVoices();
-    if (existing.length) {
-      resolve(existing);
-      return;
-    }
-    const onChange = () => {
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length) {
-        window.speechSynthesis.removeEventListener("voiceschanged", onChange);
-        resolve(voices);
-      }
-    };
-    window.speechSynthesis.addEventListener("voiceschanged", onChange);
-    // Fallback in case the event never fires.
-    setTimeout(() => resolve(window.speechSynthesis.getVoices()), 1000);
-  });
-
-  return voicesPromise;
-}
-
-// Prefer a friendly, natural English voice when one is available.
-function pickVoice(voices) {
-  if (!voices.length) return null;
-  const preferred = [
-    "Google US English",
-    "Samantha",
-    "Microsoft Aria Online (Natural) - English (United States)",
-    "Microsoft Zira",
-  ];
-  for (const name of preferred) {
-    const match = voices.find((v) => v.name === name);
-    if (match) return match;
-  }
-  return (
-    voices.find((v) => v.lang && v.lang.startsWith("en")) || voices[0]
-  );
-}
+const urlCache = new Map();
 
 export function isSpeechSupported() {
   return supported;
 }
 
-let primed = false;
+async function fetchAudioUrl(text) {
+  if (urlCache.has(text)) return urlCache.get(text);
 
-function prime() {
-  if (!supported || primed) return;
-  primed = true;
-  console.log("[speech] priming on first user gesture");
+  const res = await fetch(
+    `https://api.deepgram.com/v1/speak?model=${MODEL}&encoding=mp3`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Token ${API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ text: String(text) }),
+    },
+  );
+
+  if (!res.ok) {
+    const detail = await res.text().catch(() => "");
+    throw new Error(`Deepgram TTS ${res.status}: ${detail}`);
+  }
+
+  const blob = await res.blob();
+  const url = URL.createObjectURL(blob);
+  urlCache.set(text, url);
+  return url;
+}
+
+export async function prefetchSpeech(text) {
+  if (!supported || !text) return;
   try {
-    window.speechSynthesis.resume();
-    const warmup = new SpeechSynthesisUtterance(" ");
-    warmup.volume = 0;
-    window.speechSynthesis.speak(warmup);
+    await fetchAudioUrl(text);
   } catch (e) {
-    console.warn("[speech] prime failed", e);
+    console.warn("[speech] Deepgram prefetch failed:", e);
   }
 }
 
-if (supported && typeof document !== "undefined") {
-  const onGesture = () => prime();
-  document.addEventListener("pointerdown", onGesture, true);
-  document.addEventListener("keydown", onGesture, true);
-  document.addEventListener("click", onGesture, true);
-}
-
-export async function speak(text, { rate = 0.95, pitch = 1.15, volume = 1 } = {}) {
+  // Speak the given text aloud. Cancels anything currently playing so successive calls don't overlap.
+export async function speak(text) {
   if (!supported || !text) return;
 
-  const voices = await loadVoices();
+  const token = ++playToken;
+  stopCurrent();
 
-  const utterance = new SpeechSynthesisUtterance(String(text));
-  const voice = pickVoice(voices);
-  if (voice) {
-    utterance.voice = voice;
-    utterance.lang = voice.lang;
+  let url;
+  try {
+    url = await fetchAudioUrl(text);
+  } catch (e) {
+    console.warn("[speech] Deepgram request failed:", e);
+    return;
   }
-  utterance.rate = rate;
-  utterance.pitch = pitch;
-  utterance.volume = volume;
 
-  // Stop anything currently playing so utterances don't overlap.
-  window.speechSynthesis.cancel();
+  if (token !== playToken) return;
+
+  const audio = new Audio(url);
+  currentAudio = audio;
 
   return new Promise((resolve) => {
-    utterance.onend = () => resolve();
-    utterance.onerror = () => resolve();
-    setTimeout(() => {
-      window.speechSynthesis.resume();
-      window.speechSynthesis.speak(utterance);
-    }, 90);
+    const done = () => {
+      if (currentAudio === audio) currentAudio = null;
+      resolve();
+    };
+    audio.onended = done;
+    audio.onerror = done;
+    const played = audio.play();
+    if (played && typeof played.catch === "function") {
+      played.catch((err) => {
+        console.warn("[speech] playback blocked:", err);
+        done();
+      });
+    }
   });
 }
 
-// Stop any speech immediately (e.g. when leaving the page).
+function stopCurrent() {
+  if (currentAudio) {
+    try {
+      currentAudio.pause();
+      currentAudio.currentTime = 0;
+    } catch {
+      // ignore
+    }
+    currentAudio = null;
+  }
+}
+
+// Stop any speech immediately 
 export function stopSpeaking() {
-  if (supported) window.speechSynthesis.cancel();
+  playToken++;
+  stopCurrent();
 }

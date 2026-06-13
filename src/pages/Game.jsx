@@ -10,7 +10,12 @@ import { generateQuestion } from "../lib/ai";
 import correctSound from "../assets/sounds/correct.mp3";
 import wrongSound from "../assets/sounds/wrong.mp3";
 import { playSound } from "../lib/sound";
-import { speak, stopSpeaking, isSpeechSupported } from "../lib/speech";
+import {
+  speak,
+  prefetchSpeech,
+  stopSpeaking,
+  isSpeechSupported,
+} from "../lib/speech";
 import { supabase } from "../lib/database";
 import { addStardust, getStardust } from "../lib/utils";
 
@@ -37,12 +42,18 @@ export default function Game() {
       const selectedTopic = localStorage.getItem("selectedTopic") || "animals";
       const selectedAnimal =
         localStorage.getItem("selectedAnimal") || "teacher";
+      // 1. Wait for the question text from Gemini.
       const questionr = await generateQuestion(selectedTopic, selectedAnimal);
       console.log(questionr);
+
+      // 2. Wait for Deepgram to produce the audio before revealing anything.
+      const line = questionSpeech(questionr);
+      await prefetchSpeech(line);
+
+      // 3. Both ready — show the question and play the (cached) audio together.
       setQuestion(questionr);
       setSpeechText(questionr.question);
-      // Read the question and choices aloud (free browser text-to-speech).
-      speak(questionSpeech(questionr));
+      speak(line);
     } finally {
       setIsLoadingQuestion(false);
     }
@@ -153,7 +164,7 @@ export default function Game() {
               )}
             </div>
 
-            <Animal name="Lion" />
+            <Animal name="Lion" thinking={isLoadingQuestion} />
 
             <div className="flex w-full items-center justify-center">
               {isLoadingQuestion ? (
