@@ -13,6 +13,7 @@ import { generateQuestion, evaluateTextAndGenerateNext } from "../lib/ai";
 import correctSound from "../assets/sounds/correct.mp3";
 import wrongSound from "../assets/sounds/wrong.mp3";
 import { playSound } from "../lib/sound";
+import { playAnimalSound } from "../lib/animalSounds";
 import { speak, prefetchSpeech, stopSpeaking } from "../lib/speech";
 import { supabase, update, getById } from "../lib/database";
 import { addStardust, getOwnedItems } from "../lib/utils";
@@ -54,6 +55,14 @@ export default function Game() {
   const ageRef = useRef(null);
   const aliveRef = useRef(true);
 
+  // Speak a line with the animal's own call before and after it talks, so the
+  // lion roars (or the elephant trumpets) around what it says.
+  async function speakAsAnimal(line) {
+    playAnimalSound(selectedAnimal);
+    await speak(line);
+    if (aliveRef.current) playAnimalSound(selectedAnimal);
+  }
+
   async function genQuestion(isActive = () => aliveRef.current) {
     setIsLoadingQuestion(true);
     setSmallHintUsed(false);
@@ -82,7 +91,7 @@ export default function Game() {
       // 3. Both ready — show the question and play the (cached) audio together.
       setQuestion(questionr);
       setSpeechText(questionr.question);
-      speak(line);
+      speakAsAnimal(line);
     } finally {
       if (isActive()) setIsLoadingQuestion(false);
     }
@@ -131,6 +140,8 @@ export default function Game() {
   // question's explanation.
   async function handleAnswer(selectedAnswer, isCorrect, feedbackOverride) {
     playSound(isCorrect ? correctSound : wrongSound);
+    // The animal reacts with its own call right after the answer is submitted.
+    playAnimalSound(selectedAnimal);
     // Count every answer toward the session tally that sizes the wheel reward.
     setAnsweredCount((c) => c + 1);
     if (isCorrect) setCorrectCount((c) => c + 1);
@@ -255,7 +266,7 @@ export default function Game() {
       if (!aliveRef.current) return;
       setQuestion(next);
       setSpeechText(next.question);
-      speak(line);
+      speakAsAnimal(line);
       return;
     }
 

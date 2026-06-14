@@ -6,6 +6,7 @@ import { AnimalArt } from "../components/Animal";
 import { BiomeScene } from "../components/Background";
 import { supabase } from "../lib/database";
 import { getStardust } from "../lib/utils";
+import { playAnimalSound } from "../lib/animalSounds";
 import { BIOME_BY_ID, BIOMES } from "../lib/biomes";
 
 export default function Biome() {
@@ -48,6 +49,8 @@ export default function Biome() {
             key={animal}
             type="button"
             onClick={() => navigate(`/topic/${biome.id}/${encodeURIComponent(animal)}`)}
+            onMouseEnter={() => playAnimalSound(animal)}
+            onFocus={() => playAnimalSound(animal)}
             className="group relative flex cursor-pointer flex-col items-center focus:outline-none"
           >
             <span
