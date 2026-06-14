@@ -42,6 +42,7 @@ export default function Game() {
   const [userId, setUserId] = useState(null);
   const [stardustval, setStardust] = useState(0);
   const [speechText, setSpeechText] = useState("Generating new question...");
+  const [questionHistoryText, setQuestionHistoryText] = useState("");
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   const [answered, setAnswered] = useState(null);
   // Consecutive correct answers — three in a row makes the animal excited.
@@ -54,8 +55,11 @@ export default function Game() {
       const selectedTopic = localStorage.getItem("selectedTopic") || "animals";
       const selectedAnimal =
         localStorage.getItem("selectedAnimal") || "teacher";
-      // 1. Wait for the question text from Gemini.
-      const questionr = await generateQuestion(selectedTopic, selectedAnimal);
+      const questionr = await generateQuestion(
+        selectedTopic,
+        selectedAnimal,
+        questionHistoryText,
+      );
       console.log(questionr);
 
       // 2. Wait for Deepgram to produce the audio before revealing anything.
@@ -87,11 +91,15 @@ export default function Game() {
     speak(answered === null ? questionSpeech(question) : speechText);
   }
 
-  async function handleAnswer(isCorrect) {
+  async function handleAnswer(selectedAnswer, isCorrect) {
     playSound(isCorrect ? correctSound : wrongSound);
 
     // Track the correct-answer streak (resets on a wrong answer).
     setStreak((prev) => (isCorrect ? prev + 1 : 0));
+    setQuestionHistoryText((previousHistory) => {
+      const nextEntry = `Question: ${question?.question || ""}\nUser response: ${selectedAnswer}\n`;
+      return previousHistory ? `${previousHistory}\n${nextEntry}` : nextEntry;
+    });
 
     if (!userId) {
       return;
@@ -204,8 +212,12 @@ export default function Game() {
                   type="multiple-choice"
                   options={question?.responses ?? []}
                   correct={question?.correct}
-                  whenCorrect={() => handleAnswer(true)}
-                  whenWrong={() => handleAnswer(false)}
+                  whenCorrect={(selectedAnswer) =>
+                    handleAnswer(selectedAnswer, true)
+                  }
+                  whenWrong={(selectedAnswer) =>
+                    handleAnswer(selectedAnswer, false)
+                  }
                   disabled={isLoadingQuestion}
                 />
               ) : (
