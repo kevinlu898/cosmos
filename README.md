@@ -61,7 +61,7 @@ Age is bucketed into three groups:
 - **6 to 9:** multiple choice, plus true or false and open ended text questions
 - **10 and up:** the same three question types, but with richer vocabulary and
   questions that ask for real reasoning.
-  
+
 All responses recieve AI feedback and explanation after submission.
 
 ## Text to speech and sound
@@ -70,7 +70,7 @@ Questions and feedback are read out loud so children who cannot read yet can
 still play.
 
 - **Speech** (`src/lib/speech.js`) calls a backend speech endpoint that proxies
-  Deepgram, so the API key stays on the server. 
+  Deepgram, so the API key stays on the server.
 - **Sound effects** (`src/lib/sound.js`) cover correct and wrong chimes, click sounds, and biome noises.
 
 ## Tech stack
