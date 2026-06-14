@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TopBar } from "../components/Navbar";
 import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 import { AnimalArt } from "../components/Animal";
 import { animalDisplayName } from "../lib/animalArt";
 import { supabase } from "../lib/database";
@@ -24,6 +25,7 @@ export default function Topic() {
   const animalName = animal ? decodeURIComponent(animal) : "Animal";
   const displayName = animalDisplayName(animalName);
   const [stardustval, setStardust] = useState(0);
+  const [customTopic, setCustomTopic] = useState("");
 
   useEffect(() => {
     const fetchStardust = async () => {
@@ -79,6 +81,31 @@ export default function Topic() {
           </button>
         ))}
       </div>
+
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          const trimmed = customTopic.trim();
+          if (trimmed) handleTopicClick(trimmed);
+        }}
+        className="mx-auto mt-10 flex w-full max-w-2xl flex-col items-stretch gap-3 sm:flex-row"
+      >
+        <Input
+          value={customTopic}
+          onChange={(e) => setCustomTopic(e.target.value)}
+          placeholder="Or type your own topic..."
+          aria-label="Custom topic"
+          className="flex-1"
+        />
+        <Button
+          type="submit"
+          variant="grape"
+          size="lg"
+          disabled={!customTopic.trim()}
+        >
+          Let's go!
+        </Button>
+      </form>
     </div>
     </div>
   );
