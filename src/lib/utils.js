@@ -31,3 +31,24 @@ export async function addStardust(user_id, num) {
 
   return newStardust;
 }
+
+export async function buyItem(user_id, cost) {
+  if (!user_id) {
+    throw new Error("buyItem requires a user_id");
+  }
+
+  const currentStardust = await getStardust(user_id);
+  if (currentStardust < cost) {
+    return -1;
+  }
+
+  const remainingStardust = currentStardust - cost;
+  await update(
+    "profiles",
+    user_id,
+    { stardust: remainingStardust },
+    { column: "user_id" },
+  );
+
+  return remainingStardust;
+}

@@ -1,29 +1,31 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { TopBar } from "../components/Navbar";
 import earthImg from "../assets/images/earth.png";
 import { talkToAI } from "../lib/ai";
+import { supabase } from "../lib/database";
+import { buyItem, getStardust } from "../lib/utils";
 
 const SHELVES = [
   [
     {
       name: "Hat",
-      price: 80,
-      icon: "rocket",
+      price: 250,
+      icon: "hat",
       desc: "Zoom across the stars in a flash!",
       glow: "from-orange-400 to-pink-500",
     },
     {
-      name: "Star Pet",
-      price: 120,
+      name: "Scarf",
+      price: 250,
       icon: "star",
       desc: "A twinkly little friend who follows you.",
       glow: "from-amber-300 to-yellow-500",
     },
     {
-      name: "Ringed Planet",
-      price: 150,
+      name: "Shoes",
+      price: 500,
       icon: "planet",
       desc: "Your very own tiny world with rings.",
       glow: "from-fuchsia-400 to-purple-600",
@@ -31,7 +33,7 @@ const SHELVES = [
   ],
   [
     {
-      name: "Alien Buddy",
+      name: "Stardust Insurance",
       price: 100,
       icon: "ufo",
       desc: "Say hi to a friend from far away.",
@@ -63,6 +65,34 @@ const STARS = Array.from({ length: 70 }, (_, i) => ({
 
 export default function Shop() {
   const navigate = useNavigate();
+  const [stardustVal, setStardust] = useState(null);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      const sessionUserId = data?.session?.user?.id ?? null;
+      setUserId(sessionUserId);
+      setStardust(await getStardust(sessionUserId));
+    };
+
+    fetchUser();
+  }, []);
+
+  const handleBuyItem = async (item) => {
+    if (!userId) {
+      alert("You do not have enough stardust!");
+      return;
+    }
+
+    const remainingStardust = await buyItem(userId, item.price);
+    if (remainingStardust === -1) {
+      alert("You do not have enough stardust!");
+      return;
+    }
+
+    setStardust(remainingStardust);
+  };
 
   return (
     <div className="relative flex h-full flex-col overflow-hidden bg-[radial-gradient(circle_at_top,#3b1660_0%,#1a0833_45%,#0a0418_100%)] font-[Fredoka] text-white">
@@ -83,7 +113,7 @@ export default function Shop() {
         title="Space Shop"
         right={
           <div className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-sm font-bold text-white shadow-md">
-            ⭐ 120 Stardust
+            ⭐ {stardustVal === null ? "…" : stardustVal} Stardust
           </div>
         }
       />
@@ -93,7 +123,12 @@ export default function Shop() {
         <EarthWindow />
         <section className="flex flex-1 flex-col justify-center gap-12 pb-16 lg:pb-0">
           {SHELVES.map((items, i) => (
-            <Shelf key={i} items={items} placement={i === 0 ? "down" : "up"} />
+            <Shelf
+              key={i}
+              items={items}
+              placement={i === 0 ? "down" : "up"}
+              onBuy={handleBuyItem}
+            />
           ))}
         </section>
       </div>
@@ -104,12 +139,17 @@ export default function Shop() {
 }
 
 /*  Shelves */
-function Shelf({ items, placement }) {
+function Shelf({ items, placement, onBuy }) {
   return (
     <div className="relative">
       <div className="flex items-end justify-around gap-2 px-3">
         {items.map((item) => (
-          <ShelfItem key={item.name} item={item} placement={placement} />
+          <ShelfItem
+            key={item.name}
+            item={item}
+            placement={placement}
+            onBuy={onBuy}
+          />
         ))}
       </div>
 
@@ -123,7 +163,7 @@ function Shelf({ items, placement }) {
   );
 }
 
-function ShelfItem({ item, placement = "up" }) {
+function ShelfItem({ item, placement = "up", onBuy }) {
   const down = placement === "down";
   const [open, setOpen] = useState(false);
   const timer = useRef(null);
@@ -159,7 +199,12 @@ function ShelfItem({ item, placement = "up" }) {
           <StarGlyph className="h-4 w-4" />
           {item.price} Stardust
         </div>
-        <Button variant="success" size="sm" className="mt-2 w-full">
+        <Button
+          variant="success"
+          size="sm"
+          className="mt-2 w-full"
+          onClick={() => onBuy(item)}
+        >
           Buy
         </Button>
         <span
@@ -231,22 +276,33 @@ function EarthWindow() {
   );
 }
 
-/*  Interactive robot shopkeeper */
-const ROBOT_LINES = [
-  "Hi captain! Tap me again! 👋",
-  "Psst… the Star Pet is my favorite. ",
-  "That blue marble out the window? That's Earth! 🌍",
-  "You've got 120 Stardust to spend!",
-  "Beep boop… you're doing great! ",
-  "Grab a buddy off the shelf!",
-];
-
 function InteractiveRobot() {
+  const [stardustVal, setStardust] = useState(null);
   const [line, setLine] = useState(0);
   const [reacting, setReacting] = useState(false);
   const [aiResponse, setAiResponse] = useState(null);
   const [thinking, setThinking] = useState(false);
   const [input, setInput] = useState("");
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      const { data } = await supabase.auth.getSession();
+      setStardust(await getStardust(data?.session?.user?.id ?? null));
+    };
+
+    fetchUser();
+  }, []);
+
+  const robotLines = [
+    "Hi captain! Tap me again! 👋",
+    "Psst… the Star Pet is my favorite. ",
+    "That blue marble out the window? That's Earth! 🌍",
+    stardustVal === null
+      ? "Checking your Stardust balance..."
+      : `You've got ${stardustVal} Stardust to spend!`,
+    "Beep boop… you're doing great! ",
+    "Grab a buddy off the shelf!",
+  ];
 
   const wave = () => {
     setReacting(true);
@@ -255,7 +311,7 @@ function InteractiveRobot() {
 
   const tap = () => {
     if (aiResponse) setAiResponse(null);
-    else setLine((p) => (p + 1) % ROBOT_LINES.length);
+    else setLine((p) => (p + 1) % robotLines.length);
     wave();
   };
 
@@ -294,7 +350,7 @@ function InteractiveRobot() {
 
       <div className="mb-2 flex w-[210px] flex-col gap-2 sm:mb-3 sm:w-[240px]">
         <div className="min-h-[2.5rem] rounded-2xl rounded-bl-sm bg-white/95 px-3 py-2 text-sm font-semibold text-purple-900 shadow-lg">
-          {thinking ? <ThinkingDots /> : aiResponse || ROBOT_LINES[line]}
+          {thinking ? <ThinkingDots /> : aiResponse || robotLines[line]}
         </div>
 
         <form onSubmit={ask} className="flex items-center gap-1.5">
