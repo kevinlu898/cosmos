@@ -123,7 +123,7 @@ export default function Shop() {
       {/* Top nav bar*/}
       <TopBar
         left={
-          <Button size="xs" onClick={() => navigate("/home")}>
+          <Button size="sm" onClick={() => navigate("/home")}>
             🌎 Return to Earth
           </Button>
         }
@@ -204,20 +204,20 @@ function ShelfItem({ item, placement = "up", onBuy, ownedCount }) {
       <div
         onMouseEnter={show}
         onMouseLeave={hide}
-        className={`absolute left-1/2 z-40 w-48 ${down ? "top-full mt-3" : "bottom-full mb-3"} -translate-x-1/2 rounded-2xl border-2 border-white bg-white p-3 text-center text-purple-900 shadow-[0_16px_36px_rgba(0,0,0,0.55)] transition duration-150 ${
+        className={`absolute left-1/2 z-40 w-56 ${down ? "top-full mt-3" : "bottom-full mb-3"} -translate-x-1/2 rounded-2xl border-2 border-white bg-white p-3 text-center text-purple-900 shadow-[0_16px_36px_rgba(0,0,0,0.55)] transition duration-150 ${
           open
             ? "scale-100 opacity-100"
             : "pointer-events-none scale-90 opacity-0"
         }`}
       >
-        <p className="text-base font-bold">{item.name}</p>
-        <p className="mt-1 text-[11px] font-bold text-slate-600">
+        <p className="text-lg font-bold">{item.name}</p>
+        <p className="mt-1 text-sm font-bold text-slate-600">
           Owned: {ownedCount}
         </p>
-        <p className="mt-0.5 text-xs leading-snug text-purple-500">
+        <p className="mt-0.5 text-sm leading-snug text-purple-500">
           {item.desc}
         </p>
-        <div className="mt-2 flex items-center justify-center gap-1 text-sm font-bold text-amber-500">
+        <div className="mt-2 flex items-center justify-center gap-1 text-base font-bold text-amber-500">
           <StarGlyph className="h-4 w-4" />
           {item.price} Stardust
         </div>
@@ -374,7 +374,7 @@ function InteractiveRobot() {
       </button>
 
       <div className="mb-2 flex w-[210px] flex-col gap-2 sm:mb-3 sm:w-[240px]">
-        <div className="min-h-[2.5rem] rounded-2xl rounded-bl-sm bg-white/95 px-3 py-2 text-sm font-semibold text-purple-900 shadow-lg">
+        <div className="min-h-[2.5rem] rounded-2xl rounded-bl-sm bg-white/95 px-3 py-2 text-base font-semibold text-purple-900 shadow-lg">
           {thinking ? <ThinkingDots /> : aiResponse || robotLines[line]}
         </div>
 

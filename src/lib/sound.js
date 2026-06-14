@@ -1,7 +1,4 @@
-// Tiny sound-effect helper.
-// Keeps one preloaded <audio> per source in a module-level cache so the
-// element is never garbage-collected mid-playback (the reason a bare
-// `new Audio(src).play()` can silently fail before it finishes loading).
+// Sound effect helpers
 const cache = {};
 
 export function playSound(src, volume = 1) {
@@ -15,9 +12,28 @@ export function playSound(src, volume = 1) {
   try {
     audio.currentTime = 0;
   } catch {
-    // ignore — currentTime can throw if the media isn't seekable yet
   }
   const played = audio.play();
   if (played && typeof played.catch === "function") played.catch(() => {});
   return audio;
+}
+
+let hoverAudio = null;
+
+export function startHoverSound(src, volume = 0.35) {
+  stopHoverSound();
+  hoverAudio = new Audio(src);
+  hoverAudio.loop = true;
+  hoverAudio.volume = volume;
+  const played = hoverAudio.play();
+  if (played && typeof played.catch === "function") played.catch(() => {});
+  return hoverAudio;
+}
+
+export function stopHoverSound() {
+  if (hoverAudio) {
+    hoverAudio.pause();
+    hoverAudio.src = "";
+    hoverAudio = null;
+  }
 }

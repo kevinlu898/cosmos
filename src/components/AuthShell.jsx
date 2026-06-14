@@ -1,5 +1,3 @@
-// Shared deep-navy "space" backdrop for the landing, sign-in, and sign-up screens.
-// Uses the Cosmos brand palette: navy background with soft gradient nebulae and stars.
 export function AuthShell({ children }) {
   return (
     <div className="h-full w-full overflow-x-hidden overflow-y-auto bg-cosmos-navy font-[Fredoka]">

@@ -24,9 +24,7 @@ const SOUND = {
 
 const SCENES = { forest: ForestScene, arctic: ArcticScene, grassland: GrasslandScene };
 
-// The biome's visuals only — sky gradient + animated scene, no sound.
-// Reusable as a backdrop anywhere (e.g. behind the animals on the picker
-// screens). Pass `className` to position/size it (e.g. "absolute inset-0").
+// The biome's visuals 
 function BiomeScene({ biome = "forest", className = "" }) {
   const b = normalize(biome);
   const Scene = SCENES[b];
@@ -93,7 +91,11 @@ function Background({ biome = "forest", children }) {
   );
 }
 
-export { Background, BiomeScene };
+function biomeSound(biome) {
+  return SOUND[normalize(biome)];
+}
+
+export { Background, BiomeScene, biomeSound };
 export default Background;
 
 function ForestScene() {

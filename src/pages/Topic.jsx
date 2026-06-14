@@ -1,9 +1,11 @@
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { TopBar } from "../components/Navbar";
 import { Button } from "../components/ui/button";
 import { AnimalArt } from "../components/Animal";
 import { animalDisplayName } from "../lib/animalArt";
+import { supabase } from "../lib/database";
+import { getStardust } from "../lib/utils";
 import { BIOME_BY_ID } from "../lib/biomes";
 
 const TOPICS = [
@@ -20,8 +22,16 @@ export default function Topic() {
   const { biomeId, animal } = useParams();
   const biomeName = BIOME_BY_ID[biomeId]?.title || "Biome";
   const animalName = animal ? decodeURIComponent(animal) : "Animal";
-  // The animal's given name to greet the player with once selected.
   const displayName = animalDisplayName(animalName);
+  const [stardustval, setStardust] = useState(0);
+
+  useEffect(() => {
+    const fetchStardust = async () => {
+      const { data } = await supabase.auth.getSession();
+      setStardust(await getStardust(data?.session?.user?.id ?? null));
+    };
+    fetchStardust();
+  }, []);
 
   const topicCards = useMemo(
     () => TOPICS.map((topic) => ({ label: topic, value: topic })),
@@ -39,9 +49,9 @@ export default function Topic() {
   return (
     <div className="flex h-full flex-col overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
       <TopBar
-        left={<Button size="xs" onClick={() => navigate("/home")}>🏠 Home</Button>}
+        left={<Button size="sm" onClick={() => navigate("/home")}>🏠 Home</Button>}
         title="Cosmos"
-        right={<Button variant="sun" size="xs" onClick={() => navigate("/shop")}>⭐ 120 Stardust</Button>}
+        right={<Button variant="sun" size="sm" onClick={() => navigate("/shop")}>⭐ {stardustval} Stardust</Button>}
       />
       <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col justify-center overflow-y-auto px-6 py-6 text-center">
       <div className="mx-auto flex w-full max-w-4xl flex-col items-center">

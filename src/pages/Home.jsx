@@ -5,17 +5,22 @@ import {getById} from "../lib/database.js";
 import { TopBar } from "../components/Navbar";
 import { Button } from "../components/ui/button";
 import { AnimalArt } from "../components/Animal";
-import { BiomeScene } from "../components/Background";
+import { BiomeScene, biomeSound } from "../components/Background";
+import { startHoverSound, stopHoverSound } from "../lib/sound";
+import { getStardust } from "../lib/utils";
 import { BIOMES } from "../lib/biomes";
+import earthImg from "../assets/images/earth.png";
 
 export default function Home() {
   const navigate = useNavigate();
   const [name, setName] = useState("User");
+  const [stardustval, setStardust] = useState(0);
   const [exploring, setExploring] = useState(false);
 
   useEffect(() => {
     const fetchUserName = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      setStardust(await getStardust(session?.user?.id ?? null));
       if (session?.user?.id) {
         const row = await getById("profiles", session.user.id, { column: "user_id" });
         if (row?.name) {
@@ -31,6 +36,10 @@ export default function Home() {
     fetchUserName();
   }, []);
 
+  // Stop any biome hover-preview sound if we leave the page while hovering
+  // (a click navigates away before onMouseLeave can fire).
+  useEffect(() => stopHoverSound, []);
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.removeItem("userLoggedIn");
@@ -40,13 +49,14 @@ export default function Home() {
   };
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
+    <div className="relative flex h-full flex-col overflow-hidden bg-gradient-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
+      <EarthHorizon />
       <TopBar
-        left={<Button variant="destructive" size="default" onClick={handleLogout}>Log Out</Button>}
+        left={<Button variant="destructive" size="sm" onClick={handleLogout}>Log Out</Button>}
         title="Cosmos"
-        right={<Button variant="sun" size="default" onClick={() => navigate("/shop")}>⭐ 120 Stardust</Button>}
+        right={<Button variant="sun" size="sm" onClick={() => navigate("/shop")}>⭐ {stardustval} Stardust</Button>}
       />
-      <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col justify-center px-6 py-6 text-center">
+      <div className="relative z-10 mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col justify-center px-6 py-6 text-center">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
           Hello, {name}!
@@ -94,10 +104,14 @@ export default function Home() {
                 key={biome.id}
                 type="button"
                 onClick={() => navigate(`/biome/${biome.id}`)}
-                className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] border border-slate-200 bg-slate-50/90 p-6 text-left shadow-sm transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
+                onMouseEnter={() => startHoverSound(biomeSound(biome.title))}
+                onMouseLeave={stopHoverSound}
+                onFocus={() => startHoverSound(biomeSound(biome.title))}
+                onBlur={stopHoverSound}
+                className={`group flex min-h-[260px] flex-col justify-between rounded-[2rem] border-4 bg-white/80 p-5 text-left transition-all hover:-translate-y-1 active:translate-y-[4px] focus:outline-none focus-visible:ring-4 ${biome.theme.border} ${biome.theme.shadow} ${biome.theme.shadowHover} ${biome.theme.shadowActive} ${biome.theme.ring}`}
               >
                 <div className="space-y-4">
-                  <div className="relative flex h-36 items-end justify-center gap-1 overflow-hidden rounded-[1.5rem] px-3">
+                  <div className="relative flex h-36 items-end justify-center gap-1 overflow-hidden rounded-[1.5rem] px-3 ring-1 ring-black/5">
                     <BiomeScene biome={biome.title} className="absolute inset-0" />
                     {biome.animals.map((animal) => (
                       <AnimalArt
@@ -108,9 +122,9 @@ export default function Home() {
                       />
                     ))}
                   </div>
-                  <div>
-                    <p className="text-2xl font-semibold text-slate-900">{biome.title}</p>
-                  </div>
+                  <p className={`text-2xl font-semibold ${biome.theme.text}`}>
+                    {biome.title}
+                  </p>
                 </div>
               </button>
             ))}
@@ -118,6 +132,24 @@ export default function Home() {
         </>
       )}
       </div>
+    </div>
+  );
+}
+
+// The big blue marble curving across the lower half of the screen, like Earth
+// seen from orbit — a shared backdrop for the home menu and biome picker.
+function EarthHorizon() {
+  return (
+    <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
+      {/* soft atmospheric glow hugging the horizon */}
+      <div className="absolute bottom-0 left-1/2 h-[55%] w-[160%] -translate-x-1/2 rounded-[50%] bg-sky-200/50 blur-3xl" />
+      <img
+        src={earthImg}
+        alt=""
+        aria-hidden="true"
+        className="absolute left-1/2 top-[58%] w-[230%] max-w-none -translate-x-1/2 select-none rounded-full drop-shadow-[0_-10px_40px_rgba(56,189,248,0.45)]"
+        draggable={false}
+      />
     </div>
   );
 }

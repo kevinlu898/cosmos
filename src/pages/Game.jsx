@@ -5,33 +5,28 @@ import { Background } from "../components/Background";
 import animalData from "../lib/animals.json";
 import { animalKey, animalDisplayName } from "../lib/animalArt";
 import { Button } from "../components/ui/button";
+import { SpinWheel } from "../components/SpinWheel";
 import { TopBar } from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { generateQuestion } from "../lib/ai";
+import { generateQuestion, evaluateTextAndGenerateNext } from "../lib/ai";
 import correctSound from "../assets/sounds/correct.mp3";
 import wrongSound from "../assets/sounds/wrong.mp3";
 import { playSound } from "../lib/sound";
-import {
-  speak,
-  prefetchSpeech,
-  stopSpeaking,
-  isSpeechSupported,
-} from "../lib/speech";
-import { supabase, update } from "../lib/database";
-import { addStardust, getOwnedItems, getStardust } from "../lib/utils";
+import { speak, prefetchSpeech, stopSpeaking } from "../lib/speech";
+import { supabase, update, getById } from "../lib/database";
+import { addStardust, getOwnedItems } from "../lib/utils";
 
-// Read the question and its answer choices aloud as one friendly prompt.
 function questionSpeech(q) {
   if (!q) return "";
+  if (q.type === "true-false") return `True or false? ${q.question}`;
+  if (q.type === "text") return q.question;
   const choices = Array.isArray(q.responses) ? q.responses : [];
   if (!choices.length) return q.question;
   return `${q.question} Your choices are: ${choices.join(", ")}.`;
 }
 export default function Game() {
   const navigate = useNavigate();
-  // The animal the player picked back in the Biome screen drives both the
-  // character art and the matching biome background.
   const [selectedAnimal] = useState(
     () => localStorage.getItem("selectedAnimal") || "Lion",
   );
@@ -48,14 +43,18 @@ export default function Game() {
   const [speechText, setSpeechText] = useState("Generating new question...");
   const [questionHistoryText, setQuestionHistoryText] = useState("");
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
+  const [isEvaluating, setIsEvaluating] = useState(false);
   const [answered, setAnswered] = useState(null);
-  // Consecutive correct answers — three in a row makes the animal excited.
+  const [pendingNext, setPendingNext] = useState(null);
   const [streak, setStreak] = useState(0);
-  // False once the page has been left, so a question that finishes loading
-  // after we navigate away doesn't start talking on a page that's gone.
+  const [answeredCount, setAnsweredCount] = useState(0);
+  const [correctCount, setCorrectCount] = useState(0);
+  const [sessionEnded, setSessionEnded] = useState(false);
+  const [reward, setReward] = useState(null);
+  const ageRef = useRef(null);
   const aliveRef = useRef(true);
 
-  async function genQuestion() {
+  async function genQuestion(isActive = () => aliveRef.current) {
     setIsLoadingQuestion(true);
     setSmallHintUsed(false);
     setRemovedChoice(null);
@@ -68,6 +67,7 @@ export default function Game() {
         selectedTopic,
         selectedAnimal,
         questionHistoryText,
+        ageRef.current,
       );
       console.log(questionr);
 
@@ -75,24 +75,46 @@ export default function Game() {
       const line = questionSpeech(questionr);
       await prefetchSpeech(line);
 
-      // User left while this was loading — don't reveal or start talking.
-      if (!aliveRef.current) return;
+      // This run was superseded (page left, or StrictMode threw it away) —
+      // don't reveal or start talking.
+      if (!isActive()) return;
 
       // 3. Both ready — show the question and play the (cached) audio together.
       setQuestion(questionr);
       setSpeechText(questionr.question);
       speak(line);
     } finally {
-      setIsLoadingQuestion(false);
+      if (isActive()) setIsLoadingQuestion(false);
     }
   }
 
   useEffect(() => {
-    const initializeQuestion = async () => {
-      await genQuestion();
-    };
+    // A per-mount token: this run only reveals/speaks while it's the live one.
+    let cancelled = false;
+    // Load the player's profile (age + currencies) first so the very first
+    // question is already tailored to their age, then generate it.
+    const init = async () => {
+      const { data } = await supabase.auth.getSession();
+      const sessionUserId = data?.session?.user?.id ?? null;
+      setUserId(sessionUserId);
 
-    initializeQuestion();
+      const profile = sessionUserId
+        ? await getById("profiles", sessionUserId, { column: "user_id" })
+        : null;
+      ageRef.current = profile?.age ?? null;
+      setStardust(profile?.stardust ?? 0);
+
+      const ownedItems = await getOwnedItems(sessionUserId);
+      setStreakSavers(ownedItems.streak_saver ?? 0);
+      setSmallHints(ownedItems.small_hint ?? 0);
+
+      if (!cancelled) await genQuestion(() => !cancelled);
+    };
+    init();
+    return () => {
+      cancelled = true;
+      stopSpeaking();
+    };
   }, []);
 
   // Stop any speech when leaving the page
@@ -104,13 +126,14 @@ export default function Game() {
     };
   }, []);
 
-  // Re-read whatever the animal is currently "saying".
-  function replaySpeech() {
-    speak(answered === null ? questionSpeech(question) : speechText);
-  }
-
-  async function handleAnswer(selectedAnswer, isCorrect) {
+  // `feedbackOverride` lets open-ended text answers use the AI's own spoken
+  // grade instead of the canned "Correct!/Wrong" wording built from the
+  // question's explanation.
+  async function handleAnswer(selectedAnswer, isCorrect, feedbackOverride) {
     playSound(isCorrect ? correctSound : wrongSound);
+    // Count every answer toward the session tally that sizes the wheel reward.
+    setAnsweredCount((c) => c + 1);
+    if (isCorrect) setCorrectCount((c) => c + 1);
     const usedStreakSaver = !isCorrect && userId && streakSavers > 0;
 
     // Track the answer streak: +1 for correct, or protected by a streak saver.
@@ -142,11 +165,14 @@ export default function Game() {
     if (!userId) {
       return;
     }
-    const feedback = isCorrect
-      ? "Correct! " + question?.explanation
-      : usedStreakSaver
-        ? "Wrong, streak saver used. " + question?.explanation
-        : "Wrong, no more streak savers left. " + question?.explanation;
+    const feedback =
+      feedbackOverride != null
+        ? feedbackOverride
+        : isCorrect
+          ? "Correct! " + question?.explanation
+          : usedStreakSaver
+            ? "Wrong, streak saver used. " + question?.explanation
+            : "Wrong, no more streak savers left. " + question?.explanation;
     setSpeechText(feedback);
     // Read the feedback aloud (free browser text-to-speech).
     speak(feedback);
@@ -170,15 +196,79 @@ export default function Game() {
     }
   }
 
+  // Open-ended answers are graded by the AI, which also returns the next
+  // question in the same call. We grade, then preload that next question (and
+  // its audio) so "Next" is instant.
+  async function handleTextAnswer(text) {
+    const trimmed = (text || "").trim();
+    if (!trimmed || isEvaluating) return;
+
+    setIsEvaluating(true);
+    setSpeechText("Let me think about your answer…");
+    try {
+      const selectedTopic = localStorage.getItem("selectedTopic") || "animals";
+      const character = localStorage.getItem("selectedAnimal") || "teacher";
+      const result = await evaluateTextAndGenerateNext({
+        topic: selectedTopic,
+        character,
+        prev: questionHistoryText,
+        age: ageRef.current,
+        question: question?.question || "",
+        userResponse: trimmed,
+      });
+
+      const isCorrect = !!result?.evaluation?.correct;
+      const feedback =
+        result?.evaluation?.feedback || (isCorrect ? "Great job!" : "Good try!");
+      const next = result?.next ?? null;
+
+      // Warm the next question's audio so revealing it later reads instantly.
+      if (next) prefetchSpeech(questionSpeech(next));
+
+      if (!aliveRef.current) return;
+      setPendingNext(next);
+      handleAnswer(trimmed, isCorrect, feedback);
+    } catch (e) {
+      console.warn("text evaluation failed", e);
+      if (aliveRef.current) {
+        handleAnswer(
+          trimmed,
+          false,
+          "Hmm, I couldn't check that one. Let's keep going!",
+        );
+      }
+    } finally {
+      if (aliveRef.current) setIsEvaluating(false);
+    }
+  }
+
   async function handleNext() {
-    // stop any feedback audio that's still playing, then load the next question
     stopSpeaking();
     setAnswered(null);
+    if (pendingNext) {
+      const next = pendingNext;
+      setPendingNext(null);
+      setSmallHintUsed(false);
+      setRemovedChoice(null);
+      const line = questionSpeech(next);
+      await prefetchSpeech(line); 
+      if (!aliveRef.current) return;
+      setQuestion(next);
+      setSpeechText(next.question);
+      speak(line);
+      return;
+    }
+
     await genQuestion();
   }
 
   async function handleSmallHint() {
     if (!userId) {
+      return;
+    }
+
+    if (question?.type && question.type !== "multiple-choice") {
+      alert("Small Hints only work on multiple choice questions!");
       return;
     }
 
@@ -220,41 +310,56 @@ export default function Game() {
       console.warn("small hint update failed", e);
     }
   }
+  const accuracy = answeredCount ? correctCount / answeredCount : 0;
+  const maxReward = Math.min(
+    99,
+    Math.round(answeredCount * 10 * (0.3 + 0.7 * accuracy)),
+  );
+  const wheelSegments = buildWheelSegments(maxReward);
 
-  useEffect(() => {
-    const fetchUser = async () => {
-      const { data } = await supabase.auth.getSession();
-      const sessionUserId = data?.session?.user?.id ?? null;
-      setUserId(sessionUserId);
-      setStardust(await getStardust(sessionUserId));
-      const ownedItems = await getOwnedItems(sessionUserId);
-      setStreakSavers(ownedItems.streak_saver ?? 0);
-      setSmallHints(ownedItems.small_hint ?? 0);
-    };
-    fetchUser();
-  }, []);
+  function handleEndSession() {
+    stopSpeaking();
+    if (answeredCount === 0) {
+      navigate("/home");
+      return;
+    }
+    setSessionEnded(true);
+  }
+
+  async function handleWheelResult(value) {
+    setReward(value);
+    if (value > 0) playSound(correctSound);
+    if (userId && value > 0) {
+      try {
+        const nextStardust = await addStardust(userId, value);
+        setStardust(nextStardust);
+      } catch (e) {
+        console.warn("wheel reward addStardust failed", e);
+      }
+    }
+  }
 
   return (
     <div className="flex h-full flex-col overflow-hidden bg-linear-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
       <TopBar
         left={
-          <Button size="xs" onClick={() => navigate("/home")}>
-            🏠 Home
+          <Button variant="destructive" size="sm" onClick={handleEndSession}>
+            End Session
           </Button>
         }
         title="Explore"
         right={
           <div className="flex items-center gap-2">
-            <div className="rounded-full bg-white/85 px-3 py-1 text-xs font-bold text-purple-900 shadow-md">
-              Streak Savers: {streakSavers}
-            </div>
-            <Button variant="secondary" size="xs" onClick={handleSmallHint}>
-              Small Hints: {smallHints}
+            <Button variant="secondary" size="sm" onClick={handleSmallHint}>
+              Small Hints ({smallHints})
             </Button>
             <div className="rounded-full bg-white/85 px-3 py-1 text-xs font-bold text-purple-900 shadow-md">
               Streak: {streak}
             </div>
-            <Button variant="sun" size="xs" onClick={() => navigate("/shop")}>
+            <div className="rounded-full bg-white/85 px-3 py-1 text-xs font-bold text-purple-900 shadow-md">
+              Streak Savers ({streakSavers})
+            </div>
+            <Button variant="sun" size="sm" onClick={() => navigate("/shop")}>
               ⭐ {stardustval} Stardust
             </Button>
           </div>
@@ -267,30 +372,23 @@ export default function Game() {
             <div className="flex shrink-0 items-start gap-2">
               <Speech
                 text={
-                  isLoadingQuestion ? "Thinking of a fun question…" : speechText
+                  isLoadingQuestion
+                    ? "Thinking of a fun question…"
+                    : isEvaluating
+                      ? "Let me think about your answer…"
+                      : speechText
                 }
                 tone={
                   answered === null ? undefined : answered ? "correct" : "wrong"
                 }
               />
-              {isSpeechSupported() && !isLoadingQuestion && (
-                <Button
-                  variant="secondary"
-                  size="xs"
-                  onClick={replaySpeech}
-                  aria-label="Hear it again"
-                  title="Hear it again"
-                >
-                  🔊
-                </Button>
-              )}
             </div>
 
             <Animal
               name={animalName}
               animal={selectedAnimal}
               expression={
-                isLoadingQuestion
+                isLoadingQuestion || isEvaluating
                   ? "relaxed"
                   : answered === null
                     ? "happy"
@@ -300,26 +398,47 @@ export default function Game() {
                         : "happy"
                       : "sad"
               }
-              thinking={isLoadingQuestion}
+              thinking={isLoadingQuestion || isEvaluating}
             />
 
             <div className="flex w-full items-center justify-center">
-              {isLoadingQuestion ? (
+              {isLoadingQuestion || isEvaluating ? (
                 <LoadingDots />
               ) : answered === null ? (
-                <Response
-                  type="multiple-choice"
-                  options={question?.responses ?? []}
-                  correct={question?.correct}
-                  hiddenOptions={removedChoice ? [removedChoice] : []}
-                  whenCorrect={(selectedAnswer) =>
-                    handleAnswer(selectedAnswer, true)
-                  }
-                  whenWrong={(selectedAnswer) =>
-                    handleAnswer(selectedAnswer, false)
-                  }
-                  disabled={isLoadingQuestion}
-                />
+                question?.type === "true-false" ? (
+                  <Response
+                    type="true-false"
+                    answer={question?.answer}
+                    whenCorrect={(selectedAnswer) =>
+                      handleAnswer(selectedAnswer, true)
+                    }
+                    whenWrong={(selectedAnswer) =>
+                      handleAnswer(selectedAnswer, false)
+                    }
+                    disabled={isLoadingQuestion || isEvaluating}
+                  />
+                ) : question?.type === "text" ? (
+                  <Response
+                    key={question?.question}
+                    type="text"
+                    onSubmit={handleTextAnswer}
+                    disabled={isLoadingQuestion || isEvaluating}
+                  />
+                ) : (
+                  <Response
+                    type="multiple-choice"
+                    options={question?.responses ?? []}
+                    correct={question?.correct}
+                    hiddenOptions={removedChoice ? [removedChoice] : []}
+                    whenCorrect={(selectedAnswer) =>
+                      handleAnswer(selectedAnswer, true)
+                    }
+                    whenWrong={(selectedAnswer) =>
+                      handleAnswer(selectedAnswer, false)
+                    }
+                    disabled={isLoadingQuestion}
+                  />
+                )
               ) : (
                 <Button
                   variant="grape"
@@ -334,8 +453,70 @@ export default function Game() {
           </div>
         </Background>
       )}
+
+      {sessionEnded && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-cosmos-navy/70 p-4 backdrop-blur-sm">
+          <div className="flex w-full max-w-md flex-col items-center gap-5 rounded-[2rem] border-4 border-white/70 bg-linear-to-b from-white to-sky-50 p-6 text-center shadow-2xl sm:p-8">
+            <h2 className="text-3xl font-bold text-cosmos-purple">
+              Session complete!
+            </h2>
+            <div className="flex w-full justify-center gap-3 text-sm font-bold">
+              <div className="flex-1 rounded-2xl bg-purple-100 px-3 py-2 text-purple-900">
+                <div className="text-2xl">{answeredCount}</div>
+                Questions
+              </div>
+              <div className="flex-1 rounded-2xl bg-emerald-100 px-3 py-2 text-emerald-900">
+                <div className="text-2xl">{Math.round(accuracy * 100)}%</div>
+                Accuracy
+              </div>
+            </div>
+
+            {reward === null ? (
+              <>
+                <p className="text-base font-medium text-slate-600">
+                  Spin to win up to{" "}
+                  <span className="font-bold text-cosmos-purple">
+                    {maxReward}
+                  </span>{" "}
+                  ⭐ Stardust!
+                </p>
+                <SpinWheel
+                  segments={wheelSegments}
+                  onResult={handleWheelResult}
+                />
+              </>
+            ) : (
+              <>
+                <div className="rounded-2xl bg-amber-100 px-6 py-4">
+                  <p className="text-lg font-medium text-amber-800">You won</p>
+                  <p className="text-4xl font-bold text-amber-600">
+                    ⭐ {reward}
+                  </p>
+                </div>
+                <Button
+                  variant="grape"
+                  size="lg"
+                  onClick={() => navigate("/home")}
+                >
+                  🏠 Back to Home
+                </Button>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
+}
+
+function buildWheelSegments(max) {
+  const n = 8;
+  if (max <= 0) return Array.from({ length: n }, () => 0);
+  const values = Array.from({ length: n }, (_, i) =>
+    Math.max(1, Math.round((max * (i + 1)) / n)),
+  );
+  const order = [0, 4, 1, 5, 2, 6, 3, 7];
+  return order.map((i) => values[i]);
 }
 
 function LoadingDots() {

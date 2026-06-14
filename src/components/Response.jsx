@@ -15,6 +15,7 @@ const CHOICE_VARIANTS = [
 export function Response(props) {
   const [shuffled, setShuffled] = useState([]);
   const [shuffledCorrect, setShuffledCorrect] = useState(null);
+  const [textValue, setTextValue] = useState("");
 
   useEffect(() => {
     if (props.type !== "multiple-choice") return;
@@ -27,18 +28,13 @@ export function Response(props) {
         Array.isArray(props.options) ? props.options : []
       ).filter((option) => !hiddenOptions.includes(option));
 
-      // Pair each option with its original index
       const paired = options.map((opt, i) => ({ opt, i }));
-
-      // Fisher-Yates shuffle
       for (let i = paired.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [paired[i], paired[j]] = [paired[j], paired[i]];
       }
 
       setShuffled(paired.map((p) => p.opt));
-
-      // find new index where original index === props.correct
       const newIndex = paired.findIndex((p) => p.i === props.correct);
       setShuffledCorrect(newIndex >= 0 ? newIndex : null);
     };
@@ -53,7 +49,14 @@ export function Response(props) {
       </p>
 
       {props.type === "multiple-choice" && (
-        <div className="grid grid-cols-3 items-stretch gap-3">
+        <div
+          className={`grid items-stretch gap-3 transition-all duration-300 ${
+            (Array.isArray(props.hiddenOptions) ? props.hiddenOptions : [])
+              .length
+              ? "grid-cols-2"
+              : "grid-cols-3"
+          }`}
+        >
           {(shuffled.length ? shuffled : props.options || [])
             .filter(
               (option) =>
@@ -87,22 +90,58 @@ export function Response(props) {
 
       {props.type === "true-false" && (
         <div className="flex justify-center gap-3">
-          <Button variant="success" size="lg">
+          <Button
+            variant="success"
+            size="lg"
+            disabled={props.disabled}
+            onClick={() =>
+              props.answer === true
+                ? props.whenCorrect("True")
+                : props.whenWrong("True")
+            }
+          >
             👍 True
           </Button>
-          <Button variant="danger" size="lg">
+          <Button
+            variant="danger"
+            size="lg"
+            disabled={props.disabled}
+            onClick={() =>
+              props.answer === false
+                ? props.whenCorrect("False")
+                : props.whenWrong("False")
+            }
+          >
             👎 False
           </Button>
         </div>
       )}
 
       {props.type === "text" && (
-        <div className="flex flex-col items-stretch gap-3">
-          <Textarea type="text" placeholder="Type here..." className="h-24" />
-          <Button variant="success" size="lg">
+        <form
+          className="flex w-[min(80vw,26rem)] h-34 flex-col items-stretch gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const value = textValue.trim();
+            if (value && !props.disabled) props.onSubmit(value);
+          }}
+        >
+          <Textarea
+            value={textValue}
+            onChange={(e) => setTextValue(e.target.value)}
+            placeholder="Type here..."
+            className="h-20 w-full resize-none field-sizing-fixed"
+            disabled={props.disabled}
+          />
+          <Button
+            type="submit"
+            variant="success"
+            size="lg"
+            disabled={props.disabled || !textValue.trim()}
+          >
             Go!
           </Button>
-        </div>
+        </form>
       )}
     </Card>
   );
