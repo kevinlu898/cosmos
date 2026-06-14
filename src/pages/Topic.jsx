@@ -11,7 +11,7 @@ const TOPICS = [
   "Making friends",
   "Daily life",
   "Math",
-  "Learning",
+  "Science",
 ];
 
 export default function Topic() {
@@ -42,7 +42,7 @@ export default function Topic() {
         title="Cosmos"
         right={<Button variant="sun" size="xs" onClick={() => navigate("/shop")}>⭐ 120 Stardust</Button>}
       />
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 text-center">
+      <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col justify-center overflow-y-auto px-6 py-6 text-center">
       <div className="mx-auto flex w-full max-w-4xl flex-col items-center">
         <div className="flex h-40 w-40 items-center justify-center rounded-full bg-white/70 shadow-sm backdrop-blur-sm">
           <AnimalArt
@@ -54,7 +54,6 @@ export default function Topic() {
         <h1 className="mt-4 text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
           Pick a Topic for {displayName}
         </h1>
-        <p className="mt-2 text-lg text-slate-500">the {animalName}</p>
       </div>
 
       <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

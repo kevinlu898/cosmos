@@ -1,8 +1,8 @@
-const API_KEY = import.meta.env.VITE_DEEPGRAM_API_KEY;
+// Text-to-speech via our backend's /api/speak endpoint, which proxies Deepgram
+// so the API key stays server-side (never shipped in the client bundle).
+const TTS_ENDPOINT = "https://mh-backend-eight.vercel.app/api/speech";
 
-const MODEL = "aura-2-thalia-en";
-
-const supported = typeof window !== "undefined" && typeof Audio !== "undefined" && !!API_KEY;
+const supported = typeof window !== "undefined" && typeof Audio !== "undefined";
 
 let currentAudio = null;
 let playToken = 0;
@@ -16,21 +16,15 @@ export function isSpeechSupported() {
 async function fetchAudioUrl(text) {
   if (urlCache.has(text)) return urlCache.get(text);
 
-  const res = await fetch(
-    `https://api.deepgram.com/v1/speak?model=${MODEL}&encoding=mp3`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Token ${API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ text: String(text) }),
-    },
-  );
+  const res = await fetch(TTS_ENDPOINT, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ text: String(text) }),
+  });
 
   if (!res.ok) {
     const detail = await res.text().catch(() => "");
-    throw new Error(`Deepgram TTS ${res.status}: ${detail}`);
+    throw new Error(`TTS ${res.status}: ${detail}`);
   }
 
   const blob = await res.blob();
@@ -44,7 +38,7 @@ export async function prefetchSpeech(text) {
   try {
     await fetchAudioUrl(text);
   } catch (e) {
-    console.warn("[speech] Deepgram prefetch failed:", e);
+    console.warn("[speech] TTS prefetch failed:", e);
   }
 }
 
@@ -59,7 +53,7 @@ export async function speak(text) {
   try {
     url = await fetchAudioUrl(text);
   } catch (e) {
-    console.warn("[speech] Deepgram request failed:", e);
+    console.warn("[speech] TTS request failed:", e);
     return;
   }
 

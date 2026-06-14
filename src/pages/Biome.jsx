@@ -17,7 +17,7 @@ export default function Biome() {
         title="Cosmos"
         right={<Button variant="sun" size="xs" onClick={() => navigate("/shop")}>⭐ 120 Stardust</Button>}
       />
-      <div className="mx-auto flex min-h-screen max-w-6xl flex-col px-6 py-10 text-center">
+      <div className="mx-auto flex h-full min-h-0 w-full max-w-6xl flex-col justify-center px-6 py-6 text-center">
       <div className="mx-auto w-full max-w-4xl">
         <h1 className="text-4xl font-semibold tracking-tight text-slate-900 sm:text-5xl">
           {biome.title}

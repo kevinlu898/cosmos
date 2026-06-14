@@ -7,7 +7,7 @@ import { animalKey, animalDisplayName } from "../lib/animalArt";
 import { Button } from "../components/ui/button";
 import { TopBar } from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { generateQuestion } from "../lib/ai";
 import correctSound from "../assets/sounds/correct.mp3";
 import wrongSound from "../assets/sounds/wrong.mp3";
@@ -47,6 +47,9 @@ export default function Game() {
   const [answered, setAnswered] = useState(null);
   // Consecutive correct answers — three in a row makes the animal excited.
   const [streak, setStreak] = useState(0);
+  // False once the page has been left, so a question that finishes loading
+  // after we navigate away doesn't start talking on a page that's gone.
+  const aliveRef = useRef(true);
 
   async function genQuestion() {
     setIsLoadingQuestion(true);
@@ -66,6 +69,9 @@ export default function Game() {
       const line = questionSpeech(questionr);
       await prefetchSpeech(line);
 
+      // User left while this was loading — don't reveal or start talking.
+      if (!aliveRef.current) return;
+
       // 3. Both ready — show the question and play the (cached) audio together.
       setQuestion(questionr);
       setSpeechText(questionr.question);
@@ -83,8 +89,14 @@ export default function Game() {
     initializeQuestion();
   }, []);
 
-  // Stop any speech when leaving the page so it doesn't keep talking.
-  useEffect(() => () => stopSpeaking(), []);
+  // Stop any speech when leaving the page 
+  useEffect(() => {
+    aliveRef.current = true;
+    return () => {
+      aliveRef.current = false;
+      stopSpeaking();
+    };
+  }, []);
 
   // Re-read whatever the animal is currently "saying".
   function replaySpeech() {
