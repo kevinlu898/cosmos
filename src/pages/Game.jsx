@@ -18,8 +18,8 @@ import {
   stopSpeaking,
   isSpeechSupported,
 } from "../lib/speech";
-import { supabase } from "../lib/database";
-import { addStardust, getStardust } from "../lib/utils";
+import { supabase, update } from "../lib/database";
+import { addStardust, getOwnedItems, getStardust } from "../lib/utils";
 
 // Read the question and its answer choices aloud as one friendly prompt.
 function questionSpeech(q) {
@@ -41,6 +41,10 @@ export default function Game() {
   const [question, setQuestion] = useState(null);
   const [userId, setUserId] = useState(null);
   const [stardustval, setStardust] = useState(0);
+  const [streakSavers, setStreakSavers] = useState(0);
+  const [smallHints, setSmallHints] = useState(0);
+  const [smallHintUsed, setSmallHintUsed] = useState(false);
+  const [removedChoice, setRemovedChoice] = useState(null);
   const [speechText, setSpeechText] = useState("Generating new question...");
   const [questionHistoryText, setQuestionHistoryText] = useState("");
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
@@ -53,6 +57,8 @@ export default function Game() {
 
   async function genQuestion() {
     setIsLoadingQuestion(true);
+    setSmallHintUsed(false);
+    setRemovedChoice(null);
 
     try {
       const selectedTopic = localStorage.getItem("selectedTopic") || "animals";
@@ -89,7 +95,7 @@ export default function Game() {
     initializeQuestion();
   }, []);
 
-  // Stop any speech when leaving the page 
+  // Stop any speech when leaving the page
   useEffect(() => {
     aliveRef.current = true;
     return () => {
@@ -105,9 +111,29 @@ export default function Game() {
 
   async function handleAnswer(selectedAnswer, isCorrect) {
     playSound(isCorrect ? correctSound : wrongSound);
+    const usedStreakSaver = !isCorrect && userId && streakSavers > 0;
 
-    // Track the correct-answer streak (resets on a wrong answer).
-    setStreak((prev) => (isCorrect ? prev + 1 : 0));
+    // Track the answer streak: +1 for correct, or protected by a streak saver.
+    if (isCorrect) {
+      setStreak((prev) => prev + 1);
+    } else if (usedStreakSaver) {
+      const nextStreakSavers = Math.max(streakSavers - 1, 0);
+      setStreakSavers(nextStreakSavers);
+      (async () => {
+        try {
+          await update(
+            "profiles",
+            userId,
+            { streak_saver: nextStreakSavers },
+            { column: "user_id" },
+          );
+        } catch (e) {
+          console.warn("streak saver update failed", e);
+        }
+      })();
+    } else {
+      setStreak(0);
+    }
     setQuestionHistoryText((previousHistory) => {
       const nextEntry = `Question: ${question?.question || ""}\nUser response: ${selectedAnswer}\n`;
       return previousHistory ? `${previousHistory}\n${nextEntry}` : nextEntry;
@@ -118,7 +144,9 @@ export default function Game() {
     }
     const feedback = isCorrect
       ? "Correct! " + question?.explanation
-      : "Sorry, that's wrong. " + question?.explanation;
+      : usedStreakSaver
+        ? "Wrong, streak saver used. " + question?.explanation
+        : "Wrong, no more streak savers left. " + question?.explanation;
     setSpeechText(feedback);
     // Read the feedback aloud (free browser text-to-speech).
     speak(feedback);
@@ -149,11 +177,59 @@ export default function Game() {
     await genQuestion();
   }
 
+  async function handleSmallHint() {
+    if (!userId) {
+      return;
+    }
+
+    if (smallHintUsed) {
+      return;
+    }
+
+    if (smallHints <= 0) {
+      alert("You have no more small hints!");
+      return;
+    }
+
+    const wrongChoices = Array.isArray(question?.responses)
+      ? question.responses.filter(
+          (choice) => choice !== question?.responses?.[question?.correct],
+        )
+      : [];
+
+    if (!wrongChoices.length) {
+      alert("You have no more small hints!");
+      return;
+    }
+
+    const choiceToRemove =
+      wrongChoices[Math.floor(Math.random() * wrongChoices.length)];
+    setRemovedChoice(choiceToRemove);
+    setSmallHintUsed(true);
+
+    const nextSmallHints = smallHints - 1;
+    setSmallHints(nextSmallHints);
+    try {
+      await update(
+        "profiles",
+        userId,
+        { small_hint: nextSmallHints },
+        { column: "user_id" },
+      );
+    } catch (e) {
+      console.warn("small hint update failed", e);
+    }
+  }
+
   useEffect(() => {
     const fetchUser = async () => {
       const { data } = await supabase.auth.getSession();
-      setUserId(data?.session?.user?.id ?? null);
-      setStardust(await getStardust(data?.session?.user?.id ?? null));
+      const sessionUserId = data?.session?.user?.id ?? null;
+      setUserId(sessionUserId);
+      setStardust(await getStardust(sessionUserId));
+      const ownedItems = await getOwnedItems(sessionUserId);
+      setStreakSavers(ownedItems.streak_saver ?? 0);
+      setSmallHints(ownedItems.small_hint ?? 0);
     };
     fetchUser();
   }, []);
@@ -168,9 +244,20 @@ export default function Game() {
         }
         title="Learning Time!"
         right={
-          <Button variant="sun" size="xs" onClick={() => navigate("/shop")}>
-            ⭐ {stardustval} Stardust
-          </Button>
+          <div className="flex items-center gap-2">
+            <div className="rounded-full bg-white/85 px-3 py-1 text-xs font-bold text-purple-900 shadow-md">
+              Streak Savers: {streakSavers}
+            </div>
+            <Button variant="secondary" size="xs" onClick={handleSmallHint}>
+              Small Hints: {smallHints}
+            </Button>
+            <div className="rounded-full bg-white/85 px-3 py-1 text-xs font-bold text-purple-900 shadow-md">
+              Streak: {streak}
+            </div>
+            <Button variant="sun" size="xs" onClick={() => navigate("/shop")}>
+              ⭐ {stardustval} Stardust
+            </Button>
+          </div>
         }
       />
 
@@ -224,6 +311,7 @@ export default function Game() {
                   type="multiple-choice"
                   options={question?.responses ?? []}
                   correct={question?.correct}
+                  hiddenOptions={removedChoice ? [removedChoice] : []}
                   whenCorrect={(selectedAnswer) =>
                     handleAnswer(selectedAnswer, true)
                   }
