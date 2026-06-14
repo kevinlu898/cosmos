@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="shoes for Ellie the elephant">
+  <style>
+    .bob   { animation: a-bob 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footL { animation: a-step 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footR { animation: a-step 1.1s ease-in-out infinite .55s; transform-box: fill-box; transform-origin: center bottom; }
+    @keyframes a-bob  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    @keyframes a-step { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-6px) rotate(-4deg); } }
+    @media (prefers-reduced-motion: reduce) { .bob,.footL,.footR { animation: none !important; } }
+  </style>
+  <g class="footL" style="transform-box:fill-box;transform-origin:center bottom"><path d="M70 179 Q70 168 84 168 Q98 168 98 179 Z" fill="#f4b400" /><rect x="69" y="178" width="30" height="6" rx="3" fill="#ffffff"/><path d="M80 173 L88 173" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M84 170 L84 176" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/></g><g class="footR" style="transform-box:fill-box;transform-origin:center bottom"><path d="M102 179 Q102 168 116 168 Q130 168 130 179 Z" fill="#f4b400" /><rect x="101" y="178" width="30" height="6" rx="3" fill="#ffffff"/><path d="M112 173 L120 173" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M116 170 L116 176" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/></g>
+</svg>

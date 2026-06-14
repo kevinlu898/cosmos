@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="shoes for Leo the lion">
+  <style>
+    .bob   { animation: a-bob 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footL { animation: a-step 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footR { animation: a-step 1.1s ease-in-out infinite .55s; transform-box: fill-box; transform-origin: center bottom; }
+    @keyframes a-bob  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    @keyframes a-step { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-6px) rotate(-4deg); } }
+    @media (prefers-reduced-motion: reduce) { .bob,.footL,.footR { animation: none !important; } }
+  </style>
+  <g class="footL" style="transform-box:fill-box;transform-origin:center bottom"><path d="M73.5 180 Q73.5 169 85 169 Q96.5 169 96.5 180 Z" fill="#f4b400" /><rect x="72.5" y="179" width="25" height="6" rx="3" fill="#ffffff"/><path d="M81 174 L89 174" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M85 171 L85 177" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/></g><g class="footR" style="transform-box:fill-box;transform-origin:center bottom"><path d="M103.5 180 Q103.5 169 115 169 Q126.5 169 126.5 180 Z" fill="#f4b400" /><rect x="102.5" y="179" width="25" height="6" rx="3" fill="#ffffff"/><path d="M111 174 L119 174" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M115 171 L115 177" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/></g>
+</svg>

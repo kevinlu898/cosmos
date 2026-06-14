@@ -12,6 +12,7 @@ const TOPICS = [
   "Daily life",
   "Math",
   "Science",
+  "Space"
 ];
 
 export default function Topic() {

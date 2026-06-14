@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="scarf for Georgie the giraffe">
+  <style>
+    .bob   { animation: a-bob 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footL { animation: a-step 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footR { animation: a-step 1.1s ease-in-out infinite .55s; transform-box: fill-box; transform-origin: center bottom; }
+    @keyframes a-bob  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    @keyframes a-step { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-6px) rotate(-4deg); } }
+    @media (prefers-reduced-motion: reduce) { .bob,.footL,.footR { animation: none !important; } }
+  </style>
+  <g class="bob"><ellipse cx="100" cy="102" rx="17" ry="8.5" fill="#2bb3a3" /><ellipse cx="100" cy="100" rx="14" ry="3.4" fill="#bfe9e2" opacity="0.55"/><path d="M97.76 104 q-1 13 -3 23 q5 4 11 1 q1 -12 1 -23 Z" fill="#2bb3a3" /><path d="M101.76 110 L100.76 124" stroke="#bfe9e2" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="104.76" cy="103" r="7" fill="#1f8d80" /><path d="M98.76 127 L98.76 132" stroke="#2bb3a3" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M103.76 128 L103.76 133" stroke="#2bb3a3" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M108.76 127 L108.76 132" stroke="#2bb3a3" stroke-width="2" stroke-linecap="round" fill="none"/></g>
+</svg>

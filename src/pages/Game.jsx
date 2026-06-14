@@ -166,7 +166,7 @@ export default function Game() {
             🏠 Home
           </Button>
         }
-        title="Learning Time!"
+        title="Explore"
         right={
           <Button variant="sun" size="xs" onClick={() => navigate("/shop")}>
             ⭐ {stardustval} Stardust

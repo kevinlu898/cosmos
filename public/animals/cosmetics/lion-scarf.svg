@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="scarf for Leo the lion">
+  <style>
+    .bob   { animation: a-bob 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footL { animation: a-step 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footR { animation: a-step 1.1s ease-in-out infinite .55s; transform-box: fill-box; transform-origin: center bottom; }
+    @keyframes a-bob  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    @keyframes a-step { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-6px) rotate(-4deg); } }
+    @media (prefers-reduced-motion: reduce) { .bob,.footL,.footR { animation: none !important; } }
+  </style>
+  <g class="bob"><ellipse cx="100" cy="118" rx="25" ry="8.5" fill="#2bb3a3" /><ellipse cx="100" cy="116" rx="22" ry="3.4" fill="#bfe9e2" opacity="0.55"/><path d="M100 120 q-1 13 -3 23 q5 4 11 1 q1 -12 1 -23 Z" fill="#2bb3a3" /><path d="M104 126 L103 140" stroke="#bfe9e2" stroke-width="2" stroke-linecap="round" fill="none"/><circle cx="107" cy="119" r="7" fill="#1f8d80" /><path d="M101 143 L101 148" stroke="#2bb3a3" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M106 144 L106 149" stroke="#2bb3a3" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M111 143 L111 148" stroke="#2bb3a3" stroke-width="2" stroke-linecap="round" fill="none"/></g>
+</svg>

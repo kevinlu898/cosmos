@@ -2,15 +2,23 @@ import { useState } from "react";
 import { Card } from "../components/ui/card";
 import animals from "../lib/animals.json";
 import { ANIMAL_EMOJI, ANIMAL_EXPRESSIONS, animalKey } from "../lib/animalArt";
+import { COSMETIC_ITEMS, cosmeticSrc, useOwnedCosmetics } from "../lib/cosmetics";
 
 // The animated SVG art on its own (no card / name chrome). Falls back to an
 // emoji if the file is missing. Resolve `animal`/`name` to an animals.json key.
+// By default the player's owned cosmetics (from the DB) are layered on top, so
+// every displayed animal wears whatever the player owns. Pass an explicit
+// `cosmetics` array (e.g. ["hat", "shoes"]) to override that (e.g. for shop
+// previews); each item is an aligned overlay sharing the 200x200 viewBox.
 export function AnimalArt({
   name,
   animal,
   expression = "happy",
+  cosmetics,
   className = "h-full w-full object-contain",
 }) {
+  const owned = useOwnedCosmetics();
+  const active = cosmetics ?? owned;
   const key = animalKey(animal) || animalKey(name);
   const expr = ANIMAL_EXPRESSIONS.includes(expression) ? expression : "happy";
   // Track the src that failed to load so the fallback only kicks in for that
@@ -32,19 +40,47 @@ export function AnimalArt({
     );
   }
 
+  const alt = `${name || animals[key].name} looking ${expr}`;
+  // Keep a stable layer order regardless of the order items were owned/equipped.
+  const equipped = COSMETIC_ITEMS.filter((c) => active.includes(c));
+
+  if (!equipped.length) {
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        onError={() => setFailedSrc(src)}
+        draggable={false}
+      />
+    );
+  }
+
   return (
-    <img
-      src={src}
-      alt={`${name || animals[key].name} looking ${expr}`}
-      className={className}
-      onError={() => setFailedSrc(src)}
-      draggable={false}
-    />
+    <span className={`relative block ${className}`}>
+      <img
+        src={src}
+        alt={alt}
+        className="absolute inset-0 h-full w-full object-contain"
+        onError={() => setFailedSrc(src)}
+        draggable={false}
+      />
+      {equipped.map((item) => (
+        <img
+          key={item}
+          src={cosmeticSrc(key, item)}
+          alt=""
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0 h-full w-full object-contain"
+          draggable={false}
+        />
+      ))}
+    </span>
   );
 }
 
 export function Animal(props) {
-  const { name, thinking, animal, expression = "happy" } = props;
+  const { name, thinking, animal, expression = "happy", cosmetics } = props;
 
   return (
     <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 overflow-hidden select-none">
@@ -70,6 +106,7 @@ export function Animal(props) {
             name={name}
             animal={animal}
             expression={expression}
+            cosmetics={cosmetics}
             className="h-full w-full object-contain p-2"
           />
         </Card>

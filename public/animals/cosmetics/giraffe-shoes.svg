@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="shoes for Georgie the giraffe">
+  <style>
+    .bob   { animation: a-bob 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footL { animation: a-step 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footR { animation: a-step 1.1s ease-in-out infinite .55s; transform-box: fill-box; transform-origin: center bottom; }
+    @keyframes a-bob  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    @keyframes a-step { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-6px) rotate(-4deg); } }
+    @media (prefers-reduced-motion: reduce) { .bob,.footL,.footR { animation: none !important; } }
+  </style>
+  <g class="footL" style="transform-box:fill-box;transform-origin:center bottom"><path d="M78 180 Q78 169 88 169 Q98 169 98 180 Z" fill="#f4b400" /><rect x="77" y="179" width="22" height="6" rx="3" fill="#ffffff"/><path d="M84 174 L92 174" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M88 171 L88 177" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/></g><g class="footR" style="transform-box:fill-box;transform-origin:center bottom"><path d="M102 180 Q102 169 112 169 Q122 169 122 180 Z" fill="#f4b400" /><rect x="101" y="179" width="22" height="6" rx="3" fill="#ffffff"/><path d="M108 174 L116 174" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/><path d="M112 171 L112 177" stroke="#ffffff" stroke-width="2" stroke-linecap="round" fill="none"/></g>
+</svg>
