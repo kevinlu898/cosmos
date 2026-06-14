@@ -40,7 +40,7 @@ export default function Shop() {
 
       {/* Top nav bar*/}
       <TopBar
-        left={<Button size="xs" onClick={() => navigate("/")}>🌎 Return to Earth</Button>}
+        left={<Button size="xs" onClick={() => navigate("/home")}>🌎 Return to Earth</Button>}
         title="Space Shop"
         right={
           <div className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-sm font-bold text-white shadow-md">
@@ -173,7 +173,7 @@ function EarthWindow() {
         })}
 
         <div className="relative h-full w-full overflow-hidden rounded-full bg-[radial-gradient(circle_at_50%_38%,#101a44,#05010a)]">
-          <img onClick={() => navigate("/")} src={earthImg} alt="Earth" className="h-full w-full object-cover cursor-pointer" />
+          <img onClick={() => navigate("/home")} src={earthImg} alt="Earth" className="h-full w-full object-cover cursor-pointer" />
         </div>
       </div>
     </div>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/database.js";
 import { Button } from "../components/ui/button.jsx";
 import { Input } from "../components/ui/input.jsx";
+import { AuthShell } from "../components/AuthShell.jsx";
 
 export default function SignIn() {
   const [email, setEmail] = useState("");
@@ -42,16 +43,34 @@ export default function SignIn() {
   }
 
   return (
-    <div className="mx-auto max-w-md p-6">
-      <h1 className="text-2xl font-semibold mb-4">Cosmos</h1>
-      <h2 className="text-lg font-medium mb-4">Sign in</h2>
-      <div className="mb-2 text-left">Email</div>
-      <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" className="w-full mb-3" />
-      <div className="mb-2 text-left">Password</div>
-      <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="password" className="w-full mb-4" />
+    <AuthShell>
+      <div className="rounded-[2rem] border border-white/15 bg-white/10 p-8 shadow-2xl backdrop-blur-md">
+        <img src="/logo-full.png" alt="Cosmos" className="mx-auto mb-2 h-24 w-auto" />
+        <h2 className="mb-6 text-center text-2xl font-semibold text-white">Welcome back!</h2>
 
-    <Button className="w-full" onClick={handleSignIn}>Sign in</Button>
-    <Button className="text-sm mt-5" variant="ghost" onClick={() => navigate('/')}>New here? Create account</Button>
-    </div>
+        <form
+          className="space-y-4 text-left"
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleSignIn();
+          }}
+        >
+          <div>
+            <label className="mb-1.5 block pl-2 text-sm font-medium text-white/80">Email</label>
+            <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+          </div>
+          <div>
+            <label className="mb-1.5 block pl-2 text-sm font-medium text-white/80">Password</label>
+            <Input value={password} onChange={(e) => setPassword(e.target.value)} type="password" placeholder="••••••••" />
+          </div>
+
+          <Button type="submit" variant="cosmos" size="lg" className="mt-2 w-full">Sign in</Button>
+        </form>
+
+        <Button className="mt-4 w-full text-sm text-white/80 hover:bg-white/10" variant="ghost" onClick={() => navigate('/signup')}>
+          New here? Create account
+        </Button>
+      </div>
+    </AuthShell>
   );
 }

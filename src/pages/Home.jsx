@@ -4,21 +4,9 @@ import { supabase } from "../lib/database.js";
 import {getById} from "../lib/database.js";
 import { TopBar } from "../components/Navbar";
 import { Button } from "../components/ui/button";
-
-const AREAS = [
-  {
-    id: "area-1",
-    biome: "Forest",
-  },
-  {
-    id: "area-2",
-    biome: "Savanna",
-  },
-  {
-    id: "area-3",
-    biome: "Arctic",
-  },
-];
+import { AnimalArt } from "../components/Animal";
+import { BiomeScene } from "../components/Background";
+import { BIOMES } from "../lib/biomes";
 
 export default function Home() {
   const navigate = useNavigate();
@@ -63,23 +51,32 @@ export default function Home() {
           Hello, {name}!
         </h1>
         <p className="mt-4 text-lg leading-8 text-slate-600">
-          Pick an Area!
+          Pick a Biome!
         </p>
       </div>
 
       <div className="mt-10 grid gap-6 md:grid-cols-3">
-        {AREAS.map((area) => (
+        {BIOMES.map((biome) => (
           <button
-            key={area.id}
+            key={biome.id}
             type="button"
-            onClick={() => navigate(`/area/${area.id}`)}
+            onClick={() => navigate(`/biome/${biome.id}`)}
             className="group flex min-h-[260px] flex-col justify-between rounded-[2rem] border border-slate-200 bg-slate-50/90 p-6 text-left shadow-sm transition hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/70"
           >
             <div className="space-y-4">
-              <div className="h-36 rounded-[1.5rem] bg-slate-200/80" />
+              <div className="relative flex h-36 items-end justify-center gap-1 overflow-hidden rounded-[1.5rem] px-3">
+                <BiomeScene biome={biome.title} className="absolute inset-0" />
+                {biome.animals.map((animal) => (
+                  <AnimalArt
+                    key={animal}
+                    name={animal}
+                    expression="happy"
+                    className="relative z-10 h-28 flex-1 object-contain drop-shadow-md transition-transform duration-200 group-hover:scale-110"
+                  />
+                ))}
+              </div>
               <div>
-                <p className="text-2xl font-semibold text-slate-900">{area.biome}</p>
-                <p className="mt-2 text-sm text-slate-500">{area.description}</p>
+                <p className="text-2xl font-semibold text-slate-900">{biome.title}</p>
               </div>
             </div>
           </button>

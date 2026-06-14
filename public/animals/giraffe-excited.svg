@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Georgie the giraffe looking excited">
+  <style>
+    .bob   { animation: a-bob 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .eye   { animation: a-blink 4.6s infinite; transform-box: fill-box; transform-origin: center; }
+    .tail  { animation: a-wag 1.5s ease-in-out infinite; }
+    .footL { animation: a-step 1.1s ease-in-out infinite; transform-box: fill-box; transform-origin: center bottom; }
+    .footR { animation: a-step 1.1s ease-in-out infinite .55s; transform-box: fill-box; transform-origin: center bottom; }
+    .ear   { animation: a-ear 3.6s ease-in-out infinite; }
+    .spark { animation: a-twinkle 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    .tear  { animation: a-drop 2.8s ease-in infinite; transform-box: fill-box; transform-origin: center; }
+
+    @keyframes a-bob  { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+    @keyframes a-blink{ 0%,93%,100% { transform: scaleY(1); } 96.5% { transform: scaleY(0.08); } }
+    @keyframes a-wag  { 0%,100% { transform: rotate(-11deg); } 50% { transform: rotate(11deg); } }
+    @keyframes a-step { 0%,100% { transform: translateY(0); } 30% { transform: translateY(-6px) rotate(-4deg); } }
+    @keyframes a-ear  { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(-5deg); } }
+    @keyframes a-twinkle { 0%,100% { opacity: .25; transform: scale(.6); } 50% { opacity: 1; transform: scale(1.1); } }
+    @keyframes a-drop { 0% { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } 100% { transform: translateY(16px); opacity: 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      .bob,.eye,.tail,.footL,.footR,.ear,.spark,.tear { animation: none !important; }
+    }
+  </style>
+  <ellipse cx="100" cy="188" rx="56" ry="9" fill="#000" opacity="0.12"/>
+  
+    <g class="tail" style="transform-box:view-box;transform-origin:108px 160px"><path d="M108 160 L118 184" stroke="#e7b54a" stroke-width="4" stroke-linecap="round" fill="none" /><circle cx="119" cy="186" r="5" fill="#8a6a3a" /></g>
+    <g class="footL"><ellipse cx="88" cy="178" rx="8" ry="11" fill="#f3c45a" /><ellipse cx="88" cy="184" rx="6" ry="4" fill="#8a6a3a" /></g>
+    <g class="footR"><ellipse cx="112" cy="178" rx="8" ry="11" fill="#f3c45a" /><ellipse cx="112" cy="184" rx="6" ry="4" fill="#8a6a3a" /></g>
+    <g class="bob">
+      <ellipse cx="100" cy="150" rx="30" ry="30" fill="#f3c45a" />
+      <ellipse cx="88" cy="110" rx="6" ry="5" fill="#c98a3a" opacity="0.8"/><ellipse cx="108" cy="120" rx="6" ry="5" fill="#c98a3a" opacity="0.8"/><ellipse cx="92" cy="134" rx="6" ry="5" fill="#c98a3a" opacity="0.8"/><ellipse cx="112" cy="142" rx="6" ry="5" fill="#c98a3a" opacity="0.8"/><ellipse cx="86" cy="150" rx="6" ry="5" fill="#c98a3a" opacity="0.8"/>
+      <!-- long neck -->
+      <path d="M88 150 Q84 100 92 70 L114 70 Q122 104 112 150 Z" fill="#f3c45a" />
+      <ellipse cx="96" cy="110" rx="5" ry="5" fill="#c98a3a" opacity="0.8"/><ellipse cx="106" cy="128" rx="5" ry="5" fill="#c98a3a" opacity="0.8"/>
+      <!-- head -->
+      <ellipse cx="103" cy="60" rx="22" ry="20" fill="#f3c45a" />
+      <ellipse cx="112" cy="70" rx="11" ry="9" fill="#fbe2a4" />
+      <path d="M92 46 L88 32" stroke="#8a6a3a" stroke-width="4" stroke-linecap="round" fill="none" /><circle cx="88" cy="30" r="4.5" fill="#5a4632" />
+      <path d="M114 46 L118 32" stroke="#8a6a3a" stroke-width="4" stroke-linecap="round" fill="none" /><circle cx="118" cy="30" r="4.5" fill="#5a4632" />
+      <g class="ear" style="transform-box:view-box;transform-origin:82px 56px"><ellipse cx="78" cy="54" rx="9" ry="5" fill="#f3c45a" /></g>
+      <g class="ear" style="transform-box:view-box;transform-origin:124px 56px;animation-delay:.6s"><ellipse cx="128" cy="54" rx="9" ry="5" fill="#f3c45a" /></g>
+      <ellipse cx="112" cy="72" rx="4" ry="3" fill="#5a4632" /><ellipse cx="118" cy="70" rx="4" ry="3" fill="#5a4632" />
+      <g class="eye"><circle cx="89" cy="56" r="6.9" fill="#3a2a1e" /><circle cx="91.21" cy="53.79" r="2.35" fill="#fff" /></g><g class="eye"><circle cx="111" cy="56" r="6.9" fill="#3a2a1e" /><circle cx="113.21" cy="53.79" r="2.35" fill="#fff" /></g><path d="M82 47 L93.2 45" stroke="#3a2a1e" stroke-width="3" stroke-linecap="round" fill="none" /><path d="M118 47 L106.8 45" stroke="#3a2a1e" stroke-width="3" stroke-linecap="round" fill="none" /><ellipse cx="86.6" cy="66" rx="5" ry="3.2" fill="#ff9aa8" opacity="0.8"/><ellipse cx="113.4" cy="66" rx="5" ry="3.2" fill="#ff9aa8" opacity="0.8"/><path d="M91 70 Q100 66 109 70 Q100 81 91 70 Z" fill="#7a2230" /><path d="M95.05 77 Q100 81 104.95 77 Z" fill="#ff7d93" /><g class="spark" style="animation-delay:0s"><path d="M73 38 L74.92 42.08 L79 44 L74.92 45.92 L73 50 L71.08 45.92 L67 44 L71.08 42.08 Z" fill="#ffd84d" /></g><g class="spark" style="animation-delay:0.5s"><path d="M129 49 L130.6 52.4 L134 54 L130.6 55.6 L129 59 L127.4 55.6 L124 54 L127.4 52.4 Z" fill="#ffd84d" /></g><g class="spark" style="animation-delay:0.9s"><path d="M100 23 L101.6 26.4 L105 28 L101.6 29.6 L100 33 L98.4 29.6 L95 28 L98.4 26.4 Z" fill="#ffd84d" /></g>
+    </g>
+</svg>

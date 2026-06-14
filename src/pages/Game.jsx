@@ -2,6 +2,8 @@ import { Response } from "../components/Response";
 import { Speech } from "../components/Speech";
 import { Animal } from "../components/Animal";
 import { Background } from "../components/Background";
+import animalData from "../lib/animals.json";
+import { animalKey, animalDisplayName } from "../lib/animalArt";
 import { Button } from "../components/ui/button";
 import { TopBar } from "../components/Navbar";
 import { useNavigate } from "react-router-dom";
@@ -28,12 +30,22 @@ function questionSpeech(q) {
 }
 export default function Game() {
   const navigate = useNavigate();
+  // The animal the player picked back in the Biome screen drives both the
+  // character art and the matching biome background.
+  const [selectedAnimal] = useState(
+    () => localStorage.getItem("selectedAnimal") || "Lion",
+  );
+  const animalBiome =
+    animalData[animalKey(selectedAnimal)]?.biome || "grassland";
+  const animalName = animalDisplayName(selectedAnimal);
   const [question, setQuestion] = useState(null);
   const [userId, setUserId] = useState(null);
   const [stardustval, setStardust] = useState(0);
   const [speechText, setSpeechText] = useState("Generating new question...");
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   const [answered, setAnswered] = useState(null);
+  // Consecutive correct answers — three in a row makes the animal excited.
+  const [streak, setStreak] = useState(0);
 
   async function genQuestion() {
     setIsLoadingQuestion(true);
@@ -77,6 +89,9 @@ export default function Game() {
 
   async function handleAnswer(isCorrect) {
     playSound(isCorrect ? correctSound : wrongSound);
+
+    // Track the correct-answer streak (resets on a wrong answer).
+    setStreak((prev) => (isCorrect ? prev + 1 : 0));
 
     if (!userId) {
       return;
@@ -127,7 +142,7 @@ export default function Game() {
     <div className="flex h-full flex-col overflow-hidden bg-linear-to-b from-sky-200 via-sky-100 to-emerald-50 font-[Fredoka]">
       <TopBar
         left={
-          <Button size="xs" onClick={() => navigate("/")}>
+          <Button size="xs" onClick={() => navigate("/home")}>
             🏠 Home
           </Button>
         }
@@ -140,7 +155,7 @@ export default function Game() {
       />
 
       {(question || isLoadingQuestion) && (
-        <Background biome="arctic">
+        <Background biome={animalBiome}>
           <div className="flex h-full w-full flex-col items-center justify-between gap-3 overflow-hidden p-4 sm:p-6">
             <div className="flex shrink-0 items-start gap-2">
               <Speech
@@ -164,7 +179,22 @@ export default function Game() {
               )}
             </div>
 
-            <Animal name="Lion" thinking={isLoadingQuestion} />
+            <Animal
+              name={animalName}
+              animal={selectedAnimal}
+              expression={
+                isLoadingQuestion
+                  ? "relaxed"
+                  : answered === null
+                    ? "happy"
+                    : answered
+                      ? streak >= 3
+                        ? "excited"
+                        : "happy"
+                      : "sad"
+              }
+              thinking={isLoadingQuestion}
+            />
 
             <div className="flex w-full items-center justify-center">
               {isLoadingQuestion ? (

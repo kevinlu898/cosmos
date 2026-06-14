@@ -22,11 +22,26 @@ const SOUND = {
   grassland: grassSounds,
 };
 
+const SCENES = { forest: ForestScene, arctic: ArcticScene, grassland: GrasslandScene };
+
+// The biome's visuals only — sky gradient + animated scene, no sound.
+// Reusable as a backdrop anywhere (e.g. behind the animals on the picker
+// screens). Pass `className` to position/size it (e.g. "absolute inset-0").
+function BiomeScene({ biome = "forest", className = "" }) {
+  const b = normalize(biome);
+  const Scene = SCENES[b];
+  return (
+    <div className={`overflow-hidden ${SKY[b]} ${className}`}>
+      <Scene />
+      <BiomeStyles />
+    </div>
+  );
+}
+
 function Background({ biome = "forest", children }) {
   const b = normalize(biome);
-  const Scene = { forest: ForestScene, arctic: ArcticScene, grassland: GrasslandScene }[b];
 
-  // Play the biome's sound for exactly 10 seconds. 
+  // Play the biome's sound for exactly 10 seconds.
   useEffect(() => {
     const audio = new Audio(SOUND[b]);
     audio.loop = true; 
@@ -68,19 +83,17 @@ function Background({ biome = "forest", children }) {
   }, [b]);
 
   return (
-    <div className={`relative h-full w-full overflow-hidden ${SKY[b]}`}>
-      <Scene />
+    <div className="relative h-full w-full overflow-hidden">
+      <BiomeScene biome={biome} className="absolute inset-0" />
 
       <div className="relative z-20 flex h-full w-full items-center justify-center px-4">
         {children}
       </div>
-
-      <BiomeStyles />
     </div>
   );
 }
 
-export { Background };
+export { Background, BiomeScene };
 export default Background;
 
 function ForestScene() {

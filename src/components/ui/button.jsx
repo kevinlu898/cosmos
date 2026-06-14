@@ -11,6 +11,10 @@ const buttonVariants = cva(
       variant: {
         default:
           "bg-sky-400 text-white hover:bg-sky-500 shadow-[0_5px_0_#0284c7] active:shadow-[0_1px_0_#0284c7]",
+        cosmos:
+          "bg-gradient-to-r from-cosmos-purple via-cosmos-blue to-cosmos-cyan text-white hover:brightness-105 shadow-[0_5px_0_#0b3a8f] active:shadow-[0_1px_0_#0b3a8f]",
+        sunset:
+          "bg-gradient-to-r from-cosmos-pink via-cosmos-orange to-cosmos-yellow text-white hover:brightness-105 shadow-[0_5px_0_#c43d6e] active:shadow-[0_1px_0_#c43d6e]",
         success:
           "bg-green-400 text-white hover:bg-green-500 shadow-[0_5px_0_#16a34a] active:shadow-[0_1px_0_#16a34a]",
         danger:
