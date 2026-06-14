@@ -20,7 +20,12 @@ export function Response(props) {
     if (props.type !== "multiple-choice") return;
 
     const doShuffle = async () => {
-      const options = Array.isArray(props.options) ? props.options : [];
+      const hiddenOptions = Array.isArray(props.hiddenOptions)
+        ? props.hiddenOptions
+        : [];
+      const options = (
+        Array.isArray(props.options) ? props.options : []
+      ).filter((option) => !hiddenOptions.includes(option));
 
       // Pair each option with its original index
       const paired = options.map((opt, i) => ({ opt, i }));
@@ -39,7 +44,7 @@ export function Response(props) {
     };
 
     doShuffle();
-  }, [props.options, props.correct, props.type]);
+  }, [props.hiddenOptions, props.options, props.correct, props.type]);
 
   return (
     <Card className="w-auto max-h-3xl gap-3 border-white/70 bg-white/85 p-4 backdrop-blur-md">
@@ -49,8 +54,14 @@ export function Response(props) {
 
       {props.type === "multiple-choice" && (
         <div className="grid grid-cols-3 items-stretch gap-3">
-          {(shuffled.length ? shuffled : props.options || []).map(
-            (option, index) => (
+          {(shuffled.length ? shuffled : props.options || [])
+            .filter(
+              (option) =>
+                !(
+                  Array.isArray(props.hiddenOptions) ? props.hiddenOptions : []
+                ).includes(option),
+            )
+            .map((option, index) => (
               <Button
                 key={index}
                 variant={CHOICE_VARIANTS[index % CHOICE_VARIANTS.length]}
@@ -70,8 +81,7 @@ export function Response(props) {
               >
                 {option}
               </Button>
-            ),
-          )}
+            ))}
         </div>
       )}
 
