@@ -5,53 +5,56 @@ import { TopBar } from "../components/Navbar";
 import earthImg from "../assets/images/earth.png";
 import { talkToAI } from "../lib/ai";
 import { supabase } from "../lib/database";
-import { buyItem, getStardust } from "../lib/utils";
+import {
+  addOwnedItem,
+  buyItem,
+  getOwnedItems,
+  getStardust,
+} from "../lib/utils";
 
 const SHELVES = [
   [
     {
       name: "Hat",
-      price: 250,
+      price: 100,
       icon: "hat",
-      desc: "Zoom across the stars in a flash!",
+      profileColumn: "hat",
+      desc: "A cozy explorer hat that keeps your style bright.",
       glow: "from-orange-400 to-pink-500",
     },
     {
       name: "Scarf",
-      price: 250,
-      icon: "star",
-      desc: "A twinkly little friend who follows you.",
+      price: 100,
+      icon: "scarf",
+      profileColumn: "scarf",
+      desc: "A warm scarf to stay comfy on chilly space trips.",
       glow: "from-amber-300 to-yellow-500",
     },
     {
       name: "Shoes",
-      price: 500,
-      icon: "planet",
-      desc: "Your very own tiny world with rings.",
+      price: 250,
+      icon: "shoes",
+      profileColumn: "shoes",
+      desc: "Super shoes that help you bounce around with ease.",
       glow: "from-fuchsia-400 to-purple-600",
     },
   ],
   [
     {
-      name: "Stardust Insurance",
+      name: "Streak Saver",
       price: 100,
       icon: "ufo",
-      desc: "Say hi to a friend from far away.",
+      profileColumn: "streak_saver",
+      desc: "Protection for your stardust when adventures get risky.",
       glow: "from-green-300 to-emerald-500",
     },
     {
-      name: "Comet Tail",
-      price: 90,
-      icon: "comet",
-      desc: "Leave a sparkly trail behind you!",
-      glow: "from-cyan-300 to-blue-500",
-    },
-    {
-      name: "Space Helmet",
-      price: 110,
-      icon: "helmet",
-      desc: "Stay cool and safe on space walks.",
-      glow: "from-sky-300 to-indigo-500",
+      name: "Small Hint",
+      price: 200,
+      icon: "lightbulb",
+      profileColumn: "small_hint",
+      desc: "A helpful hint to guide you through tricky questions.",
+      glow: "from-amber-300 to-yellow-500",
     },
   ],
 ];
@@ -67,6 +70,13 @@ export default function Shop() {
   const navigate = useNavigate();
   const [stardustVal, setStardust] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [ownedItems, setOwnedItems] = useState({
+    hat: 0,
+    shoes: 0,
+    scarf: 0,
+    streak_saver: 0,
+    small_hint: 0,
+  });
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -74,6 +84,7 @@ export default function Shop() {
       const sessionUserId = data?.session?.user?.id ?? null;
       setUserId(sessionUserId);
       setStardust(await getStardust(sessionUserId));
+      setOwnedItems(await getOwnedItems(sessionUserId));
     };
 
     fetchUser();
@@ -91,7 +102,13 @@ export default function Shop() {
       return;
     }
 
+    const nextCount = await addOwnedItem(userId, item.profileColumn);
+
     setStardust(remainingStardust);
+    setOwnedItems((previous) => ({
+      ...previous,
+      [item.profileColumn]: nextCount,
+    }));
   };
 
   return (
@@ -105,7 +122,11 @@ export default function Shop() {
 
       {/* Top nav bar*/}
       <TopBar
-        left={<Button size="xs" onClick={() => navigate("/home")}>🌎 Return to Earth</Button>}
+        left={
+          <Button size="xs" onClick={() => navigate("/home")}>
+            🌎 Return to Earth
+          </Button>
+        }
         title="Space Shop"
         right={
           <div className="flex items-center gap-1.5 rounded-full bg-amber-400 px-3 py-1 text-sm font-bold text-white shadow-md">
@@ -124,6 +145,7 @@ export default function Shop() {
               items={items}
               placement={i === 0 ? "down" : "up"}
               onBuy={handleBuyItem}
+              ownedItems={ownedItems}
             />
           ))}
         </section>
@@ -135,7 +157,7 @@ export default function Shop() {
 }
 
 /*  Shelves */
-function Shelf({ items, placement, onBuy }) {
+function Shelf({ items, placement, onBuy, ownedItems }) {
   return (
     <div className="relative">
       <div className="flex items-end justify-around gap-2 px-3">
@@ -145,6 +167,7 @@ function Shelf({ items, placement, onBuy }) {
             item={item}
             placement={placement}
             onBuy={onBuy}
+            ownedCount={ownedItems[item.profileColumn] ?? 0}
           />
         ))}
       </div>
@@ -159,7 +182,7 @@ function Shelf({ items, placement, onBuy }) {
   );
 }
 
-function ShelfItem({ item, placement = "up", onBuy }) {
+function ShelfItem({ item, placement = "up", onBuy, ownedCount }) {
   const down = placement === "down";
   const [open, setOpen] = useState(false);
   const timer = useRef(null);
@@ -188,6 +211,9 @@ function ShelfItem({ item, placement = "up", onBuy }) {
         }`}
       >
         <p className="text-base font-bold">{item.name}</p>
+        <p className="mt-1 text-[11px] font-bold text-slate-600">
+          Owned: {ownedCount}
+        </p>
         <p className="mt-0.5 text-xs leading-snug text-purple-500">
           {item.desc}
         </p>
@@ -230,6 +256,9 @@ function ShelfItem({ item, placement = "up", onBuy }) {
             type={item.icon}
             className="relative h-10 w-10 drop-shadow-md sm:h-12 sm:w-12"
           />
+          <span className="absolute -right-2 -top-2 rounded-full bg-slate-900/90 px-1.5 py-0.5 text-[10px] font-bold text-white ring-2 ring-white/80">
+            {ownedCount}
+          </span>
         </span>
       </button>
 
@@ -260,7 +289,12 @@ function EarthWindow() {
         })}
 
         <div className="relative h-full w-full overflow-hidden rounded-full bg-[radial-gradient(circle_at_50%_38%,#101a44,#05010a)]">
-          <img onClick={() => navigate("/home")} src={earthImg} alt="Earth" className="h-full w-full object-cover cursor-pointer" />
+          <img
+            onClick={() => navigate("/home")}
+            src={earthImg}
+            alt="Earth"
+            className="h-full w-full object-cover cursor-pointer"
+          />
         </div>
       </div>
     </div>
@@ -488,6 +522,14 @@ function RobotKeeper({ waving = false, className = "" }) {
 
 function ItemIcon({ type, className = "" }) {
   switch (type) {
+    case "hat":
+      return <HatGlyph className={className} />;
+    case "scarf":
+      return <ScarfGlyph className={className} />;
+    case "shoes":
+      return <ShoesGlyph className={className} />;
+    case "lightbulb":
+      return <LightbulbGlyph className={className} />;
     case "rocket":
       return <RocketGlyph className={className} />;
     case "star":
@@ -581,6 +623,92 @@ function StarGlyph({ className = "" }) {
         d="M32 4 L40 24 L62 26 L45 40 L50 62 L32 50 L14 62 L19 40 L2 26 L24 24 Z"
         fill="currentColor"
         className="text-amber-300"
+      />
+    </svg>
+  );
+}
+
+function HatGlyph({ className = "" }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} fill="none">
+      <path
+        d="M18 30 C20 20 28 14 36 14 C46 14 52 22 52 30 H18 Z"
+        fill="#fff"
+      />
+      <rect x="10" y="30" width="44" height="8" rx="4" fill="#e5e7eb" />
+      <rect x="26" y="20" width="6" height="10" rx="2" fill="#fbbf24" />
+    </svg>
+  );
+}
+
+function ScarfGlyph({ className = "" }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} fill="none">
+      <path
+        d="M18 16 H46 V26 C46 34 40 40 32 40 C24 40 18 34 18 26 V16 Z"
+        fill="#fff"
+      />
+      <path d="M26 40 L20 58 H30 L34 40 Z" fill="#fde68a" />
+      <path d="M38 40 L34 56 H44 L48 40 Z" fill="#fca5a5" />
+      <path
+        d="M22 22 H42"
+        stroke="#c4b5fd"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ShoesGlyph({ className = "" }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} fill="none">
+      <path d="M8 40 H30 L34 48 H8 V40 Z" fill="#fff" />
+      <path d="M34 34 H56 L60 42 H34 V34 Z" fill="#e2e8f0" />
+      <path
+        d="M8 48 H34"
+        stroke="#94a3b8"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M34 42 H60"
+        stroke="#94a3b8"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <circle cx="19" cy="39" r="2" fill="#38bdf8" />
+      <circle cx="44" cy="33" r="2" fill="#38bdf8" />
+    </svg>
+  );
+}
+
+function LightbulbGlyph({ className = "" }) {
+  return (
+    <svg viewBox="0 0 64 64" className={className} fill="none">
+      <path
+        d="M32 10 C22 10 14 18 14 28 C14 35 18 39 22 43 C24 45 25 47 25 50 H39 C39 47 40 45 42 43 C46 39 50 35 50 28 C50 18 42 10 32 10 Z"
+        fill="#fef08a"
+      />
+      <rect x="24" y="50" width="16" height="6" rx="3" fill="#e2e8f0" />
+      <rect x="25" y="56" width="14" height="5" rx="2.5" fill="#cbd5e1" />
+      <path
+        d="M32 2 V8"
+        stroke="#fde047"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M16 12 L20 16"
+        stroke="#fde047"
+        strokeWidth="3"
+        strokeLinecap="round"
+      />
+      <path
+        d="M48 12 L44 16"
+        stroke="#fde047"
+        strokeWidth="3"
+        strokeLinecap="round"
       />
     </svg>
   );
